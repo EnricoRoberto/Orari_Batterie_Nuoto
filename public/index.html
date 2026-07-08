@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orari Batterie — Cronoprogramma Gara</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root{
+  --navy-deep:#EEF3F7;      /* sfondo pagina */
+  --navy:#FFFFFF;
+  --navy-panel:#FFFFFF;     /* sfondo card/pannelli */
+  --navy-panel-2:#F1F5F8;   /* hover pannelli */
+  --line:#D3DFE7;           /* bordi */
+  --water:#0B7A94;          /* accento principale (link, editabile) */
+  --water-bright:#0A5D75;   /* hover/attivo, piu' scuro per contrasto su bianco */
+  --lane-yellow:#B8790A;    /* accento "corsia", ambra scuro leggibile su bianco */
+  --lane-yellow-dim:#8A6108;
+  --lane-dark:#0B2436;      /* fissa, per la riga corsia (indipendente dal tema) */
+  --text:#12222C;           /* testo principale, quasi nero */
+  --text-dim:#4C6472;
+  --text-faint:#8299A8;
+  --danger:#C23B3B;
+  --ok:#1D8F63;
+  --past:#9CACB6;           /* testo gare passate */
+  --past-bg:#E7ECEF;        /* sfondo riga gare passate */
+  --current-bg:#FFF3D6;     /* sfondo gara in corso */
+  --radius:10px;
+  --mono:'JetBrains Mono', ui-monospace, monospace;
+  --sans:'Inter', system-ui, sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(1200px 600px at 15% -10%, #E2EEF3 0%, transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, #E8F4F1 0%, transparent 55%),
+    var(--navy-deep);
+  color:var(--text);
+  font-family:var(--sans);
+  min-height:100vh;
+  padding-bottom:60px;
+}
+
+/* --- lane rope signature divider --- */
+.lane-rope{
+  height:10px;
+  background: repeating-linear-gradient(90deg,
+    var(--lane-yellow) 0px, var(--lane-yellow) 18px,
+    var(--lane-dark) 18px, var(--lane-dark) 26px,
+    var(--water) 26px, var(--water) 44px,
+    var(--lane-dark) 44px, var(--lane-dark) 52px);
+  border-radius:6px;
+  opacity:.95;
+}
+
+header.app{
+  padding:28px clamp(16px,4vw,48px) 18px;
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(11,36,54,.035), transparent);
+}
+.brand{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; justify-content:space-between;}
+.brand h1{
+  font-size:clamp(22px,3vw,30px);
+  margin:0;
+  letter-spacing:.2px;
+  font-weight:800;
+}
+.brand h1 .tick{color:var(--water-bright);}
+.brand .sub{color:var(--text-dim); font-size:13px; margin-top:4px;}
+
+.toolbar{
+  display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:16px;
+}
+.btn{
+  border:1px solid var(--line);
+  background:var(--navy-panel);
+  color:var(--text);
+  padding:9px 14px;
+  border-radius:8px;
+  font-family:var(--sans);
+  font-size:13.5px;
+  font-weight:600;
+  cursor:pointer;
+  display:inline-flex; align-items:center; gap:8px;
+  transition:border-color .15s, background .15s, transform .05s;
+}
+.btn:hover{border-color:var(--water-bright); background:var(--navy-panel-2);}
+.btn:active{transform:translateY(1px);}
+.btn.primary{background:var(--water); border-color:var(--water); color:#FFFFFF; font-weight:700;}
+.btn.primary:hover{background:var(--water-bright); border-color:var(--water-bright);}
+.btn.ghost{background:transparent;}
+.btn.danger{border-color:var(--danger); color:var(--danger); background:transparent;}
+.btn.small{padding:6px 10px; font-size:12px;}
+input[type=file]{display:none;}
+
+.file-badge{
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:12.5px; color:var(--text-dim);
+  border:1px dashed var(--line);
+  padding:7px 12px; border-radius:8px;
+}
+.file-badge .dot{width:7px;height:7px;border-radius:50%; background:var(--past);}
+.file-badge.loaded .dot{background:var(--ok); box-shadow:0 0 8px var(--ok);}
+
+.settings-panel{
+  margin-top:14px;
+  display:none;
+  gap:14px;
+  flex-wrap:wrap;
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:var(--navy-panel);
+}
+.settings-panel.open{display:flex;}
+.field{display:flex; flex-direction:column; gap:5px;}
+.field label{font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-dim); font-weight:600;}
+.field input{
+  background:var(--navy-deep); border:1px solid var(--line); color:var(--text);
+  padding:8px 10px; border-radius:6px; font-family:var(--mono); font-size:14px; width:110px;
+}
+.field input:focus{outline:none; border-color:var(--water-bright);}
+
+.banner{
+  margin:16px clamp(16px,4vw,48px) 0;
+  padding:12px 16px;
+  border-radius:var(--radius);
+  font-size:13.5px;
+  display:none;
+  align-items:center;
+  gap:10px;
+  border:1px solid;
+}
+.banner.show{display:flex;}
+.banner.warn{background:#FCE9E9; border-color:var(--danger); color:#8F2323; font-weight:600;}
+.banner.info{background:#EAF6F8; border-color:var(--line); color:var(--text-dim);}
+
+main{padding:22px clamp(16px,4vw,48px);}
+
+section.block{
+  margin-bottom:26px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--navy-panel);
+  box-shadow:0 1px 3px rgba(18,34,44,.06), 0 1px 2px rgba(18,34,44,.04);
+  overflow:hidden;
+}
+.block-head{
+  padding:16px 20px;
+  display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  border-bottom:1px solid var(--line);
+}
+.block-head h2{margin:0; font-size:17px; font-weight:800;}
+.block-head .meta{font-size:12.5px; color:var(--text-dim); font-family:var(--mono);}
+
+/* Parte / sessione */
+.parte-header{
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;
+  padding:18px 20px 10px;
+}
+.parte-header .titolo{font-size:15px; font-weight:800; letter-spacing:.2px;}
+.parte-header .titolo .n{color:var(--lane-yellow);}
+.parte-header .orari{font-family:var(--mono); font-size:12.5px; color:var(--text-dim);}
+
+.evento{padding:6px 20px 14px;}
+.evento-titolo{
+  font-size:13.5px; font-weight:700; color:var(--water-bright);
+  padding:10px 0 6px; text-transform:none;
+  display:flex; align-items:center; gap:8px;
+}
+.evento-titolo .badge-count{
+  font-family:var(--mono); font-size:11px; color:var(--text-faint); font-weight:500;
+}
+
+table.batterie{width:100%; border-collapse:collapse; font-size:13px;}
+table.batterie th{
+  text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--text-faint); font-weight:600; padding:6px 8px; border-bottom:1px solid var(--line);
+}
+table.batterie td{padding:7px 8px; border-bottom:1px solid rgba(30,74,102,.35); vertical-align:middle;}
+tr.batteria-row.past{background:var(--past-bg);}
+tr.batteria-row.past td{color:var(--past);}
+tr.batteria-row.current{background:var(--current-bg); box-shadow:inset 0 0 0 1px rgba(184,121,10,.25);}
+tr.batteria-row.current td:first-child{position:relative;}
+tr.batteria-row.current td:first-child::before{
+  content:'';
+  position:absolute; left:-2px; top:0; bottom:0; width:3px;
+  background:var(--lane-yellow); box-shadow:0 0 8px rgba(184,121,10,.5);
+  animation:pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+
+.batteria-numero{font-family:var(--mono); font-weight:700; color:var(--text);}
+.batteria-numero .tot{color:var(--text-faint); font-weight:400;}
+.orario-input{
+  font-family:var(--mono); font-size:15px; font-weight:700;
+  background:#FFFFFF; border:1.5px solid var(--line); color:var(--water-bright);
+  padding:6px 4px; border-radius:6px; width:112px; min-width:112px; text-align:center;
+  box-sizing:border-box;
+}
+.orario-input:not(:disabled):hover{border-color:var(--water);}
+.orario-input::-webkit-calendar-picker-indicator{
+  opacity:.6; margin-left:2px;
+}
+.orario-input:disabled{
+  background:var(--past-bg); border-color:var(--line); color:var(--past); font-weight:600;
+  cursor:not-allowed;
+}
+.orario-input:focus{outline:none; border-color:var(--water-bright);}
+.orario-input.manual{border-color:var(--lane-yellow); color:var(--lane-yellow);}
+
+.n-atleti{color:var(--text-dim); font-size:12.5px;}
+.expand-btn{
+  background:none; border:none; color:var(--water-bright); cursor:pointer; font-size:12px;
+  text-decoration:underline; padding:0; font-family:var(--sans);
+}
+tr.atleti-detail td{padding:0 8px 14px 8px; border-bottom:1px solid rgba(30,74,102,.35);}
+table.atleti-detail-table{
+  width:100%; border-collapse:collapse; font-size:12.5px;
+  background:var(--navy-panel-2); border-radius:8px; overflow:hidden;
+}
+table.atleti-detail-table th{
+  text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.05em;
+  color:var(--text-faint); font-weight:700; padding:6px 10px; border-bottom:1px solid var(--line);
+  background:var(--navy-panel);
+}
+table.atleti-detail-table th.num, table.atleti-detail-table td.num{text-align:center; width:34px;}
+table.atleti-detail-table th.t, table.atleti-detail-table td.t{text-align:right; width:80px;}
+table.atleti-detail-table td{padding:5px 10px; border-bottom:1px solid var(--line); color:var(--text);}
+table.atleti-detail-table tr:last-child td{border-bottom:none;}
+table.atleti-detail-table tr:nth-child(even) td{background:var(--navy-panel);}
+table.atleti-detail-table td.num{font-family:var(--mono); color:var(--text-faint);}
+table.atleti-detail-table td.nome{font-weight:600;}
+table.atleti-detail-table td.societa{color:var(--text-dim);}
+table.atleti-detail-table td.t{font-family:var(--mono); font-weight:700; color:var(--water-bright); white-space:nowrap;}
+table.atleti-detail-table td.t.no-time{color:var(--text-faint); font-weight:500; font-style:italic; font-family:var(--sans);}
+
+/* Atleti monitorati */
+.monitor-search{position:relative; max-width:420px;}
+.monitor-search input{
+  width:100%; background:var(--navy-deep); border:1px solid var(--line); color:var(--text);
+  padding:10px 12px; border-radius:8px; font-family:var(--sans); font-size:14px;
+}
+.monitor-search input:focus{outline:none; border-color:var(--water-bright);}
+.chips{display:flex; flex-wrap:wrap; gap:8px; padding:14px 20px 4px;}
+.chip{
+  display:flex; align-items:center; gap:8px;
+  background:var(--navy-panel-2); border:1px solid var(--line); border-radius:20px;
+  padding:6px 8px 6px 14px; font-size:13px; font-weight:600;
+}
+.chip button{
+  background:var(--navy-deep); border:none; color:var(--text-dim); width:20px;height:20px; border-radius:50%;
+  cursor:pointer; font-size:13px; line-height:1;
+}
+.chip button:hover{color:var(--danger);}
+.monitor-empty{padding:16px 20px; color:var(--text-faint); font-size:13px;}
+.monitor-atleta{padding:10px 20px 16px;}
+.monitor-atleta h3{margin:0 0 8px; font-size:14px; font-family:var(--mono); color:var(--lane-yellow);}
+table.mini{width:100%; border-collapse:collapse; font-size:12.5px;}
+table.mini td{padding:5px 8px; border-bottom:1px solid rgba(30,74,102,.35);}
+table.mini td.t{font-family:var(--mono); color:var(--water-bright); font-weight:700;}
+
+.last-edit{font-size:12px; color:var(--text-faint); padding:6px 20px 14px; font-family:var(--mono);}
+
+footer.hint{
+  text-align:center; color:var(--text-faint); font-size:11.5px; padding:30px 20px 10px;
+}
+
+.empty-state{
+  padding:60px 24px; text-align:center; color:var(--text-dim);
+}
+.empty-state .icon{font-size:38px; margin-bottom:10px;}
+.empty-state h2{font-size:18px; margin:0 0 8px; color:var(--text);}
+.empty-state p{max-width:440px; margin:0 auto; font-size:13.5px; color:var(--text-faint);}
+
+@media print{
+  body{background:#fff; color:#000;}
+  header.app, .banner, .monitor-search, .lane-rope, .toolbar, .settings-panel, .expand-btn, .last-edit, footer.hint{display:none !important;}
+  section.block{border:1px solid #999; break-inside:avoid;}
+  .evento-titolo{color:#000;}
+  tr.batteria-row.current{background:#eee;}
+  .orario-input{border:none; color:#000; background:none;}
+  .atleti-detail{display:none;}
+}
+</style>
+</head>
+<body>
+
+<header class="app">
+  <div class="brand">
+    <div>
+      <h1>Orari<span class="tick">·</span>Batterie</h1>
+      <div class="sub">Cronoprogramma gara — ricalcolo in tempo reale</div>
+    </div>
+    <div class="file-badge" id="fileBadge"><span class="dot"></span><span id="fileBadgeText">Nessun file caricato</span></div>
+  </div>
+
+  <div class="toolbar">
+    <label class="btn primary" for="pdfInput" id="labelUpload">📄 Carica starting list (PDF)</label>
+    <input type="file" id="pdfInput" accept="application/pdf">
+    <button class="btn ghost" id="btnSettings">⚙️ Impostazioni</button>
+    <button class="btn ghost" id="btnPrint">🖨️ Stampa / PDF</button>
+    <button class="btn ghost" id="btnLock">🔒 Modalità operatore</button>
+    <span id="uploadStatus" style="font-size:12.5px;color:var(--text-dim);"></span>
+  </div>
+
+  <div class="settings-panel" id="settingsPanel">
+    <div class="field">
+      <label>Corsie vasca</label>
+      <input type="number" id="setCorsie" min="1" max="12" value="10">
+    </div>
+    <div class="field">
+      <label>Stacco batteria (min)</label>
+      <input type="number" id="setStaccoBatteria" min="0" max="30" value="2">
+    </div>
+    <div class="field">
+      <label>Stacco specialità (min)</label>
+      <input type="number" id="setStaccoSpecialita" min="0" max="30" value="1">
+    </div>
+    <div class="field" style="justify-content:flex-end;">
+      <button class="btn primary small" id="btnApplySettings">Applica e ricalcola</button>
+    </div>
+    <div class="field" style="justify-content:flex-end;">
+      <label>&nbsp;</label>
+      <input type="text" id="setOperatore" placeholder="Il tuo nome/postazione" style="width:180px;">
+    </div>
+  </div>
+</header>
+
+<div class="banner warn" id="bannerSforamento">⚠️ <span>Durata gare oltre il giorno corrente: alcuni orari sono stati limitati alle 23:59.</span></div>
+<div class="banner info" id="bannerLastEdit"></div>
+
+<main>
+  <div class="lane-rope"></div>
+
+  <section class="block" id="monitorBlock">
+    <div class="block-head">
+      <h2>🎯 Atleti monitorati</h2>
+      <span class="meta">elenco personale — legato a questo browser/dispositivo</span>
+    </div>
+    <div class="monitor-search" style="padding:16px 20px 0;">
+      <input type="text" id="monitorInput" list="atletiDatalist" placeholder="Scrivi nome o cognome…" autocomplete="off">
+      <datalist id="atletiDatalist"></datalist>
+    </div>
+    <div style="padding:10px 20px 0;">
+      <button class="btn small primary" id="btnAddMonitor">+ Aggiungi</button>
+    </div>
+    <div class="chips" id="monitorChips"></div>
+    <div id="monitorDetails"></div>
+  </section>
+
+  <div id="content">
+    <div class="empty-state">
+      <div class="icon">🏊</div>
+      <h2>Nessuna gara caricata</h2>
+      <p>Carica una starting list PDF per generare il cronoprogramma delle batterie. Una volta caricato, resterà salvato e visibile a chiunque apra questa pagina.</p>
+    </div>
+  </div>
+</main>
+
+<footer class="hint">Fuso orario: Europe/Rome · I dati sono condivisi in tempo reale tra tutti i dispositivi collegati a questa pagina.</footer>
+
+<script>
+/* ============================================================
+   FIREBASE
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyDXHuntZcdt7Oj7A_kvmcnOlYlkX5xMk5Q",
+  authDomain: "swimstarttime.firebaseapp.com",
+  databaseURL: "https://swimstarttime-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "swimstarttime",
+  storageBucket: "swimstarttime.firebasestorage.app",
+  messagingSenderId: "811651011588",
+  appId: "1:811651011588:web:1913917efaf3fe433a9151",
+  measurementId: "G-QXC0PT4ETR"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const sessionRef = db.ref('session');
+function getClientId(){
+  let id = localStorage.getItem('client_id');
+  if(!id){
+    id = (crypto.randomUUID ? crypto.randomUUID() : 'c'+Date.now()+Math.random().toString(36).slice(2));
+    localStorage.setItem('client_id', id);
+  }
+  return id;
+}
+const CLIENT_ID = getClientId();
+const monitoratiRef = db.ref('monitorati/' + CLIENT_ID);
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+/* ============================================================
+   MODALITA' OPERATORE (PIN) — gate soft: solo chi sblocca puo'
+   caricare PDF, cambiare impostazioni, modificare orari.
+   Il PIN viaggia nel payload di scrittura e viene verificato
+   dalle regole del Realtime Database (vedi database.rules.json).
+   ============================================================ */
+const OPERATOR_PIN = "556699"; // <-- imposta un PIN reale prima del deploy, uguale a quello in database.rules.json
+let UNLOCKED = localStorage.getItem('op_unlocked') === '1';
+
+function updateLockUI(){
+  const btn = document.getElementById('btnLock');
+  const labelUpload = document.getElementById('labelUpload');
+  const btnSettings = document.getElementById('btnSettings');
+  btn.textContent = UNLOCKED ? '🔓 Operatore attivo (blocca)' : '🔒 Modalità operatore';
+  labelUpload.style.display = UNLOCKED ? 'inline-flex' : 'none';
+  btnSettings.style.display = UNLOCKED ? 'inline-flex' : 'none';
+  render();
+}
+document.getElementById('btnLock').addEventListener('click', ()=>{
+  if(UNLOCKED){
+    UNLOCKED = false;
+    localStorage.removeItem('op_unlocked');
+    updateLockUI();
+    return;
+  }
+  const p = prompt('PIN operatore:');
+  if(p === null) return;
+  if(p === OPERATOR_PIN){
+    UNLOCKED = true;
+    localStorage.setItem('op_unlocked','1');
+    updateLockUI();
+  } else {
+    alert('PIN errato.');
+  }
+});
+
+/* ============================================================
+   OPERATORE (firma modifiche, salvata in localStorage)
+   ============================================================ */
+function getOperatore(){
+  let op = localStorage.getItem('operatore_nome');
+  return op || 'Operatore';
+}
+document.getElementById('setOperatore').value = getOperatore();
+document.getElementById('setOperatore').addEventListener('change', e=>{
+  localStorage.setItem('operatore_nome', e.target.value.trim() || 'Operatore');
+});
+
+/* ============================================================
+   PARSER PDF (identico al motore Python di riferimento)
+   ============================================================ */
+const RIGA_RE = /^(\d+)\)\s*(\d+)\s*(.+?)\s+(\d{4})\s+([A-Z]{3})\s+(.+?)\s+(\S+)(?:\s*(\*{1,2}))?$/;
+const RIGA_RE_NOORD = /^(\d+)\s*(.+?)\s+(\d{4})\s+([A-Z]{3})\s+(.+?)\s+(\S+)(?:\s*(\*{1,2}))?$/;
+const PARTE_RE = /Parte\s+(\d+)\s*\((\d{2}-\d{2}-\d{4})\s+ore\s+(\d{2}:\d{2})\)/i;
+const TEMPO_VALIDO_RE = /^\d{1,2}'\d{2}\.\d{2}$/;
+const TEMPI_NON_VALIDI = new Set(["S.T.", "59'59.99", "99'99.99", "60'00.00"]);
+
+function tempoToSeconds(tempo){
+  if(!tempo) return null;
+  tempo = tempo.trim();
+  if(TEMPI_NON_VALIDI.has(tempo) || !TEMPO_VALIDO_RE.test(tempo)) return null;
+  const [m,s] = tempo.split("'");
+  return parseInt(m,10)*60 + parseFloat(s);
+}
+
+async function getPageLines(page){
+  const textContent = await page.getTextContent();
+  const items = textContent.items;
+  const yTol = 2;
+  const lines = [];
+  items.forEach(item=>{
+    const y = item.transform[5];
+    let line = lines.find(l=>Math.abs(l.y-y)<yTol);
+    if(!line){ line={y,items:[]}; lines.push(line); }
+    line.items.push(item);
+  });
+  lines.sort((a,b)=>b.y-a.y);
+  return lines.map(l=>{
+    l.items.sort((a,b)=>a.transform[4]-b.transform[4]);
+    let text='', lastX=null, lastW=null;
+    l.items.forEach(it=>{
+      const x = it.transform[4];
+      if(lastX!==null){
+        const gap = x-lastX;
+        if(gap > (lastW||0)+1) text += ' ';
+      }
+      text += it.str;
+      lastX = x + (it.width||0);
+      lastW = it.width;
+    });
+    return text.trim();
+  }).filter(t=>t.length>0);
+}
+
+function parseRiga(l){
+  l = l.trim();
+  let m = RIGA_RE.exec(l);
+  let ordine=null, id,nome,anno,naz,societa,tempo,flag;
+  if(m){
+    [,ordine,id,nome,anno,naz,societa,tempo,flag] = m;
+  } else {
+    m = RIGA_RE_NOORD.exec(l);
+    if(!m) return null;
+    [,id,nome,anno,naz,societa,tempo,flag] = m;
+  }
+  return {
+    ordine: ordine?parseInt(ordine,10):null,
+    id, nome: nome.trim(), anno, nazione: naz, societa: societa.trim(),
+    tempo: tempo.trim(), tempoSec: tempoToSeconds(tempo), rapportato: !!flag
+  };
+}
+
+function parseEventPage(lines){
+  let specialita=null, parte=null, data=null, ora=null;
+  for(let i=0;i<lines.length;i++){
+    if(lines[i].startsWith('Concentramento')) specialita = lines[i-1].trim();
+    const m = PARTE_RE.exec(lines[i]);
+    if(m){ parte=parseInt(m[1],10); data=m[2]; ora=m[3]; break; }
+  }
+  if(!specialita || !ora) return null;
+  let startIdx=null;
+  for(let i=0;i<lines.length;i++){
+    if(lines[i].startsWith('Ordine') && lines[i].includes('ID.COD')){ startIdx=i+1; break; }
+  }
+  if(startIdx===null) return null;
+  const atleti=[];
+  for(let i=startIdx;i<lines.length;i++){
+    const l = lines[i];
+    if(l.startsWith('*') || l.startsWith('Powered by')) break;
+    const row = parseRiga(l);
+    if(row) atleti.push(row);
+  }
+  return { specialita, parte, data, oraInizio: ora, atleti };
+}
+
+async function parsePdf(file){
+  const buf = await file.arrayBuffer();
+  const doc = await pdfjsLib.getDocument({data: buf}).promise;
+  const eventi = [];
+  for(let p=1; p<=doc.numPages; p++){
+    const page = await doc.getPage(p);
+    const lines = await getPageLines(page);
+    const ev = parseEventPage(lines);
+    if(ev) eventi.push(ev);
+  }
+  return eventi;
+}
+
+/* ============================================================
+   MOTORE DI CALCOLO (porting di calc.py)
+   ============================================================ */
+function raggruppaBatterie(atleti, corsie){
+  const n = atleti.length;
+  if(n===0) return [];
+  const nbat = Math.ceil(n/corsie);
+  const fullGroups = Math.floor(n/corsie);
+  const remainder = n - fullGroups*corsie;
+  const batterie = new Array(nbat).fill(null);
+  if(remainder>0){
+    batterie[0] = atleti.slice(n-remainder);
+    for(let k=0;k<fullGroups;k++){
+      const rows = atleti.slice(k*corsie,(k+1)*corsie);
+      const battIndex = nbat-k;
+      batterie[battIndex-1] = rows;
+    }
+  } else {
+    for(let k=0;k<fullGroups;k++){
+      const rows = atleti.slice(k*corsie,(k+1)*corsie);
+      const battIndex = nbat-k;
+      batterie[battIndex-1] = rows;
+    }
+  }
+  return batterie;
+}
+
+function addMinutes(date, min){ return new Date(date.getTime() + min*60000); }
+
+function costruisciMeeting(eventiRaw, corsie){
+  // raggruppa per parte, crea struttura con batterie (orario iniziale = grezzo,
+  // verrà normalizzato dal ricalcolo globale subito dopo)
+  const parti = {};
+  eventiRaw.forEach(ev=>{
+    if(!parti[ev.parte]) parti[ev.parte] = [];
+    parti[ev.parte].push(ev);
+  });
+  const risultato = [];
+  Object.keys(parti).sort((a,b)=>a-b).forEach(parteNum=>{
+    const eventiParte = parti[parteNum];
+    const data = eventiParte[0].data;
+    const oraInizio = eventiParte[0].oraInizio;
+    const eventiOut = eventiParte.map(ev=>{
+      const batterie = raggruppaBatterie(ev.atleti, corsie);
+      return {
+        specialita: ev.specialita,
+        batterie: batterie.map((atleti,i)=>({
+          numero: i+1,
+          totale: batterie.length,
+          orario: null, // riempito dal ricalcolo
+          manuale: false,
+          atleti
+        }))
+      };
+    });
+    risultato.push({
+      parte: parseInt(parteNum,10),
+      data,
+      oraInizioOriginale: oraInizio,
+      eventi: eventiOut
+    });
+  });
+  return risultato;
+}
+
+function parseDataOra(data, ora){
+  // data: DD-MM-YYYY, ora: HH:MM
+  const [dd,mm,yyyy] = data.split('-');
+  const [HH,MM] = ora.split(':');
+  return new Date(parseInt(yyyy,10), parseInt(mm,10)-1, parseInt(dd,10), parseInt(HH,10), parseInt(MM,10), 0);
+}
+
+function fmtHM(date){
+  return String(date.getHours()).padStart(2,'0')+':'+String(date.getMinutes()).padStart(2,'0');
+}
+
+// ricalcola in place gli orari di TUTTE le batterie non manuali di una parte,
+// rispettando le ancore (batterie manuali). Ritorna true se sfora mezzanotte.
+function ricalcolaParte(parte, staccoBatteria, staccoSpecialita){
+  const mezzanotte = new Date(parte.oraInizioOriginale ? parseDataOra(parte.data, '23:59') : null);
+  let cursore = null;
+  let prevEventIdx = null;
+  let sforato = false;
+  parte.eventi.forEach((ev, eIdx)=>{
+    ev.batterie.forEach((b)=>{
+      if(b.manuale && b.orario){
+        cursore = new Date(b.orario);
+      } else if(cursore===null){
+        // prima batteria della parte: usa orario ufficiale sessione
+        cursore = parseDataOra(parte.data, parte.oraInizioOriginale);
+        b.orario = cursore.toISOString();
+      } else {
+        const stacco = (eIdx===prevEventIdx) ? staccoBatteria : staccoSpecialita;
+        cursore = addMinutes(cursore, stacco);
+        if(cursore > mezzanotte){
+          cursore = new Date(mezzanotte);
+          sforato = true;
+        }
+        b.orario = cursore.toISOString();
+      }
+      prevEventIdx = eIdx;
+    });
+  });
+  return sforato;
+}
+
+function ricalcolaMeeting(meeting, staccoBatteria, staccoSpecialita){
+  let sforato = false;
+  meeting.forEach(parte=>{
+    const s = ricalcolaParte(parte, staccoBatteria, staccoSpecialita);
+    if(s) sforato = true;
+  });
+  return sforato;
+}
+
+/* ============================================================
+   STATO LOCALE
+   ============================================================ */
+let STATE = {
+  meta: { fileName:null, uploadedAt:null, corsie:10, staccoBatteria:2, staccoSpecialita:1 },
+  meeting: [],       // struttura calcolata
+  monitorati: [],    // array di nomi
+  lastEdit: null
+};
+let SUPPRESS_REMOTE = false; // evita rimbalzi durante scrittura locale
+
+/* ============================================================
+   UPLOAD PDF
+   ============================================================ */
+document.getElementById('pdfInput').addEventListener('change', async (e)=>{
+  if(!UNLOCKED){ alert('Sblocca la modalità operatore per caricare un file.'); e.target.value=''; return; }
+  const file = e.target.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('uploadStatus');
+  statusEl.textContent = 'Estrazione in corso…';
+  try{
+    const corsie = parseInt(document.getElementById('setCorsie').value,10) || 10;
+    const staccoBatteria = parseFloat(document.getElementById('setStaccoBatteria').value) || 0;
+    const staccoSpecialita = parseFloat(document.getElementById('setStaccoSpecialita').value) || 0;
+
+    const eventiRaw = await parsePdf(file);
+    if(eventiRaw.length===0){
+      statusEl.textContent = 'Nessun evento riconosciuto nel PDF.';
+      return;
+    }
+    const meeting = costruisciMeeting(eventiRaw, corsie);
+    ricalcolaMeeting(meeting, staccoBatteria, staccoSpecialita);
+
+    STATE.meta = {
+      fileName: file.name,
+      uploadedAt: new Date().toISOString(),
+      corsie, staccoBatteria, staccoSpecialita
+    };
+    STATE.meeting = meeting;
+    STATE.lastEdit = {
+      tipo:'upload', dettaglio:`Caricato nuovo file "${file.name}" (${eventiRaw.length} specialità)`,
+      timestamp:new Date().toISOString(), operatore:getOperatore()
+    };
+    await salvaSessione();
+    statusEl.textContent = 'Caricato e sincronizzato.';
+  }catch(err){
+    console.error(err);
+    statusEl.textContent = 'Errore nella lettura del PDF: '+err.message;
+  }
+  e.target.value = '';
+});
+
+/* ============================================================
+   IMPOSTAZIONI
+   ============================================================ */
+document.getElementById('btnSettings').addEventListener('click', ()=>{
+  document.getElementById('settingsPanel').classList.toggle('open');
+});
+document.getElementById('btnApplySettings').addEventListener('click', async ()=>{
+  if(!UNLOCKED){ alert('Sblocca la modalità operatore per modificare le impostazioni.'); return; }
+  const corsie = parseInt(document.getElementById('setCorsie').value,10) || 10;
+  const staccoBatteria = parseFloat(document.getElementById('setStaccoBatteria').value) || 0;
+  const staccoSpecialita = parseFloat(document.getElementById('setStaccoSpecialita').value) || 0;
+
+  if(!STATE.meeting.length){
+    STATE.meta.corsie = corsie;
+    STATE.meta.staccoBatteria = staccoBatteria;
+    STATE.meta.staccoSpecialita = staccoSpecialita;
+    await salvaSessione();
+    return;
+  }
+
+  const corsieCambiate = corsie !== STATE.meta.corsie;
+  STATE.meta.corsie = corsie;
+  STATE.meta.staccoBatteria = staccoBatteria;
+  STATE.meta.staccoSpecialita = staccoSpecialita;
+
+  if(corsieCambiate){
+    // il numero di corsie cambia il raggruppamento -> ricostruisco le batterie
+    // mantenendo la lista atleti già presente
+    STATE.meeting.forEach(parte=>{
+      parte.eventi.forEach(ev=>{
+        const atleti = ev.batterie.flatMap(b=>b.atleti)
+          .sort((a,b)=> (a.tempoSec??Infinity) - (b.tempoSec??Infinity));
+        const nuoveBatterie = raggruppaBatterie(atleti, corsie);
+        ev.batterie = nuoveBatterie.map((atl,i)=>({numero:i+1, totale:nuoveBatterie.length, orario:null, manuale:false, atleti:atl}));
+      });
+    });
+  } else {
+    // reset di tutte le ancore manuali per un ricalcolo pulito con i nuovi stacchi
+    STATE.meeting.forEach(parte=>parte.eventi.forEach(ev=>ev.batterie.forEach(b=>b.manuale=false)));
+  }
+
+  const sforato = ricalcolaMeeting(STATE.meeting, staccoBatteria, staccoSpecialita);
+  STATE.lastEdit = {
+    tipo:'settings', dettaglio:`Impostazioni aggiornate — corsie:${corsie}, stacco batteria:${staccoBatteria}min, stacco specialità:${staccoSpecialita}min`,
+    timestamp:new Date().toISOString(), operatore:getOperatore()
+  };
+  await salvaSessione();
+  document.getElementById('settingsPanel').classList.remove('open');
+});
+
+/* ============================================================
+   STAMPA
+   ============================================================ */
+document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
+
+/* ============================================================
+   SYNC FIREBASE
+   ============================================================ */
+async function salvaSessione(){
+  SUPPRESS_REMOTE = true;
+  await sessionRef.set({ meta: STATE.meta, meeting: STATE.meeting, lastEdit: STATE.lastEdit, _pin: OPERATOR_PIN });
+  setTimeout(()=>SUPPRESS_REMOTE=false, 400);
+  render();
+}
+
+sessionRef.on('value', snap=>{
+  if(SUPPRESS_REMOTE) return;
+  const val = snap.val();
+  if(!val) return;
+  STATE.meta = val.meta || STATE.meta;
+  STATE.meeting = val.meeting || [];
+  STATE.lastEdit = val.lastEdit || null;
+  syncSettingsFields();
+  render();
+});
+
+monitoratiRef.on('value', snap=>{
+  const val = snap.val();
+  STATE.monitorati = val ? Object.keys(val).filter(k=>val[k]) : [];
+  renderMonitor();
+});
+
+function syncSettingsFields(){
+  document.getElementById('setCorsie').value = STATE.meta.corsie ?? 10;
+  document.getElementById('setStaccoBatteria').value = STATE.meta.staccoBatteria ?? 2;
+  document.getElementById('setStaccoSpecialita').value = STATE.meta.staccoSpecialita ?? 1;
+}
+
+/* ============================================================
+   EDIT ORARIO BATTERIA (con ricalcolo a cascata)
+   ============================================================ */
+async function onOrarioEdit(parteIdx, eventoIdx, battIdx, nuovoValoreHM){
+  if(!UNLOCKED) return;
+  const parte = STATE.meeting[parteIdx];
+  const b = parte.eventi[eventoIdx].batterie[battIdx];
+  const vecchio = b.orario;
+  const d = new Date(b.orario);
+  const [HH,MM] = nuovoValoreHM.split(':');
+  d.setHours(parseInt(HH,10), parseInt(MM,10), 0, 0);
+  b.orario = d.toISOString();
+  b.manuale = true;
+
+  const sforato = ricalcolaParte(parte, STATE.meta.staccoBatteria, STATE.meta.staccoSpecialita);
+  document.getElementById('bannerSforamento').classList.toggle('show', sforato);
+
+  STATE.lastEdit = {
+    tipo:'orario',
+    dettaglio:`${parte.eventi[eventoIdx].specialita} — batteria ${b.numero}/${b.totale}: ${fmtHM(new Date(vecchio))} → ${fmtHM(d)}`,
+    timestamp:new Date().toISOString(), operatore:getOperatore()
+  };
+  await salvaSessione();
+}
+
+/* ============================================================
+   ATLETI MONITORATI
+   ============================================================ */
+function tuttiINomiAtleti(){
+  const set = new Set();
+  STATE.meeting.forEach(parte=>parte.eventi.forEach(ev=>ev.batterie.forEach(b=>b.atleti.forEach(a=>set.add(a.nome)))));
+  return Array.from(set).sort();
+}
+
+// chiave Firebase sicura (niente . # $ / [ ])
+function encodeName(nome){
+  return nome.trim().replace(/[.#$\[\]\/]/g,'_');
+}
+async function aggiungiMonitorato(nome){
+  nome = nome.trim();
+  if(!nome) return;
+  await monitoratiRef.child(encodeName(nome)).set(nome);
+}
+async function rimuoviMonitorato(nome){
+  await monitoratiRef.child(encodeName(nome)).remove();
+}
+
+document.getElementById('btnAddMonitor').addEventListener('click', async ()=>{
+  const input = document.getElementById('monitorInput');
+  const nome = input.value.trim();
+  if(!nome) return;
+  await aggiungiMonitorato(nome);
+  input.value='';
+});
+document.getElementById('monitorInput').addEventListener('keydown', async (e)=>{
+  if(e.key==='Enter'){
+    e.preventDefault();
+    const nome = e.target.value.trim();
+    if(!nome) return;
+    await aggiungiMonitorato(nome);
+    e.target.value='';
+  }
+});
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function nowRome(){
+  const fmt = new Intl.DateTimeFormat('en-US', {timeZone:'Europe/Rome', hour12:false,
+    year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const parts = fmt.formatToParts(new Date());
+  const get = t=>parts.find(p=>p.type===t).value;
+  return new Date(`${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:${get('second')}`);
+}
+
+function fmtDataIt(dataStr){
+  const [dd,mm,yyyy] = dataStr.split('-');
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+function render(){
+  // badge file
+  const fb = document.getElementById('fileBadge');
+  const fbt = document.getElementById('fileBadgeText');
+  if(STATE.meta.fileName){
+    fb.classList.add('loaded');
+    const d = new Date(STATE.meta.uploadedAt);
+    fbt.textContent = `${STATE.meta.fileName} · caricato ${fmtHM(d)} il ${d.toLocaleDateString('it-IT')}`;
+  } else {
+    fb.classList.remove('loaded');
+    fbt.textContent = 'Nessun file caricato';
+  }
+  syncSettingsFields();
+
+  // banner ultima modifica
+  const bLast = document.getElementById('bannerLastEdit');
+  if(STATE.lastEdit){
+    const d = new Date(STATE.lastEdit.timestamp);
+    bLast.innerHTML = `✏️ <span><b>${STATE.lastEdit.operatore}</b> — ${STATE.lastEdit.dettaglio} <span style="opacity:.6">(${d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})})</span></span>`;
+    bLast.classList.add('show');
+  } else {
+    bLast.classList.remove('show');
+  }
+
+  const content = document.getElementById('content');
+  if(!STATE.meeting || STATE.meeting.length===0){
+    content.innerHTML = `<div class="empty-state"><div class="icon">🏊</div><h2>Nessuna gara caricata</h2><p>Carica una starting list PDF per generare il cronoprogramma delle batterie. Una volta caricato, resterà salvato e visibile a chiunque apra questa pagina.</p></div>`;
+    return;
+  }
+
+  const now = nowRome();
+  // costruisco lista flat globale (attraverso tutte le parti) per determinare la "batteria attuale"
+  let flat = [];
+  STATE.meeting.forEach((parte,pIdx)=>parte.eventi.forEach((ev,eIdx)=>ev.batterie.forEach((b,bIdx)=>{
+    flat.push({pIdx,eIdx,bIdx,orario:new Date(b.orario)});
+  })));
+  flat.sort((a,b)=>a.orario-b.orario);
+  let currentKey = null;
+  for(let i=0;i<flat.length;i++){
+    const cur = flat[i], next = flat[i+1];
+    if(cur.orario<=now && (!next || next.orario>now)){ currentKey = `${cur.pIdx}-${cur.eIdx}-${cur.bIdx}`; break; }
+  }
+
+  let html = '';
+  STATE.meeting.forEach((parte,pIdx)=>{
+    const fine = parte.eventi.length ? parte.eventi[parte.eventi.length-1].batterie.slice(-1)[0] : null;
+    html += `<section class="block">
+      <div class="parte-header">
+        <div class="titolo">Parte <span class="n">${parte.parte}</span> — ${fmtDataIt(parte.data)}</div>
+        <div class="orari">Inizio ${parte.oraInizioOriginale}${fine?` · ultima batteria ${fmtHM(new Date(fine.orario))}`:''}</div>
+      </div>`;
+    parte.eventi.forEach((ev,eIdx)=>{
+      const nAtleti = ev.batterie.reduce((s,b)=>s+b.atleti.length,0);
+      html += `<div class="evento">
+        <div class="evento-titolo">${ev.specialita} <span class="badge-count">(${nAtleti} atleti · ${ev.batterie.length} batterie)</span></div>
+        <table class="batterie">
+          <thead><tr><th>Batteria</th><th>Orario</th><th>Atleti</th><th></th></tr></thead>
+          <tbody>`;
+      ev.batterie.forEach((b,bIdx)=>{
+        const orarioDate = new Date(b.orario);
+        const isPast = orarioDate < now;
+        const key = `${pIdx}-${eIdx}-${bIdx}`;
+        const isCurrent = key===currentKey;
+        const rowId = `row_${key}`;
+        const detailId = `detail_${key}`;
+        html += `<tr class="batteria-row ${isPast?'past':''} ${isCurrent?'current':''}" id="${rowId}">
+          <td class="batteria-numero">${b.numero}<span class="tot">/${b.totale}</span></td>
+          <td><input type="time" class="orario-input ${b.manuale?'manual':''}" value="${fmtHM(orarioDate)}"
+              ${(isPast || !UNLOCKED)?'disabled':''}
+              onchange="onOrarioEdit(${pIdx},${eIdx},${bIdx},this.value)"></td>
+          <td class="n-atleti">${b.atleti.length} corsie</td>
+          <td><button class="expand-btn" onclick="toggleDetail('${detailId}')">dettaglio</button></td>
+        </tr>
+        <tr class="atleti-detail" id="${detailId}" style="display:none;"><td colspan="4">
+          <table class="atleti-detail-table">
+            <thead><tr><th class="num">#</th><th>Atleta</th><th>Società</th><th class="t">Tempo</th></tr></thead>
+            <tbody>
+              ${b.atleti.map((a,i)=>`<tr>
+                <td class="num">${i+1}</td>
+                <td class="nome">${a.nome}</td>
+                <td class="societa">${a.societa||''}</td>
+                <td class="t${a.tempoSec===null?' no-time':''}">${a.tempoSec===null?'senza tempo':a.tempo}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </td></tr>`;
+      });
+      html += `</tbody></table></div>`;
+    });
+    html += `</section>`;
+  });
+  content.innerHTML = html;
+}
+
+function toggleDetail(id){
+  const el = document.getElementById(id);
+  el.style.display = el.style.display==='none' ? 'table-row' : 'none';
+}
+
+function renderMonitor(){
+  // datalist
+  const dl = document.getElementById('atletiDatalist');
+  dl.innerHTML = tuttiINomiAtleti().map(n=>`<option value="${n}">`).join('');
+
+  const chips = document.getElementById('monitorChips');
+  if(!STATE.monitorati.length){
+    chips.innerHTML = '';
+    document.getElementById('monitorDetails').innerHTML = "<div class=\"monitor-empty\">Nessun atleta monitorato. Aggiungine uno per vedere l'elenco delle sue gare.</div>";
+    return;
+  }
+  chips.innerHTML = STATE.monitorati.map(n=>`<div class="chip">${n}<button onclick="rimuoviMonitorato('${n.replace(/'/g,"\\\\'")}')">×</button></div>`).join('');
+
+  const details = document.getElementById('monitorDetails');
+  details.innerHTML = STATE.monitorati.map(nome=>{
+    const gare = [];
+    STATE.meeting.forEach(parte=>parte.eventi.forEach(ev=>ev.batterie.forEach(b=>{
+      const found = b.atleti.find(a=>a.nome.toUpperCase()===nome.toUpperCase());
+      if(found) gare.push({specialita:ev.specialita, numero:b.numero, totale:b.totale, orario:new Date(b.orario), parte:parte.parte, data:parte.data});
+    })));
+    gare.sort((a,b)=>a.orario-b.orario);
+    if(!gare.length) return `<div class="monitor-atleta"><h3>${nome}</h3><div class="monitor-empty">Nessuna gara trovata nel documento caricato.</div></div>`;
+    return `<div class="monitor-atleta"><h3>${nome}</h3><table class="mini">
+      ${gare.map(g=>`<tr><td>${g.specialita}</td><td>${g.numero}/${g.totale}</td><td class="t">${fmtHM(g.orario)}</td><td style="color:var(--text-faint)">${fmtDataIt(g.data)}</td></tr>`).join('')}
+    </table></div>`;
+  }).join('');
+}
+
+/* refresh periodico per aggiornare "batteria attuale" e stato passato/futuro */
+setInterval(render, 30000);
+
+/* init */
+updateLockUI();
+render();
+renderMonitor();
+</script>
+</body>
+</html>

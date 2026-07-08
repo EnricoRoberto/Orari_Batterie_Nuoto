@@ -1,0 +1,14 @@
+{
+  "rules": {
+    "session": {
+      ".read": true,
+      ".write": "newData.child('_pin').val() === 'CAMBIAMI'"
+    },
+    "monitorati": {
+      "$clientId": {
+        ".read": true,
+        ".write": true
+      }
+    }
+  }
+}
