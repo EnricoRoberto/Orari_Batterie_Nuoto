@@ -2,7 +2,7 @@
   "rules": {
     "session": {
       ".read": true,
-      ".write": "newData.child('_pin').val() === 'CAMBIAMI'"
+      ".write": "newData.child('_pin').val() === '556699'"
     },
     "monitorati": {
       "$clientId": {
