@@ -905,6 +905,7 @@ function render(){
   const content = document.getElementById('content');
   if(!STATE.meeting || STATE.meeting.length===0){
     content.innerHTML = `<div class="empty-state"><div class="icon">🏊</div><h2>Nessuna gara caricata</h2><p>Carica una starting list PDF per generare il cronoprogramma delle batterie. Una volta caricato, resterà salvato e visibile a chiunque apra questa pagina.</p></div>`;
+    renderMonitor();
     return;
   }
 
@@ -970,6 +971,7 @@ function render(){
     html += `</section>`;
   });
   content.innerHTML = html;
+  renderMonitor();
 }
 
 function toggleDetail(id){
