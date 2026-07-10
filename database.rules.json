@@ -5,10 +5,12 @@
       ".write": "newData.child('_pin').val() === '556699'"
     },
     "monitorati": {
-      "$clientId": {
-        ".read": true,
-        ".write": true
-      }
+      ".read": true,
+      ".write": true
+    },
+    "maintenance_monitorati": {
+      ".read": true,
+      ".write": true
     }
   }
 }
