@@ -1066,6 +1066,12 @@ function toggleDetail(id){
   el.style.display = el.style.display==='none' ? 'table-row' : 'none';
 }
 
+function escapeHtml(s){
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 function renderMonitor(){
   document.getElementById('monitorBlock').classList.toggle('monitor-sticky', STATE.monitorati.length > 0);
 
@@ -1079,7 +1085,10 @@ function renderMonitor(){
     document.getElementById('monitorDetails').innerHTML = "<div class=\"monitor-empty\">Nessun atleta monitorato. Aggiungine uno per vedere l'elenco delle sue gare.</div>";
     return;
   }
-  chips.innerHTML = STATE.monitorati.map(n=>`<div class="chip">${n}<button onclick="rimuoviMonitorato('${n.replace(/'/g,"\\\\'")}')">×</button></div>`).join('');
+  chips.innerHTML = STATE.monitorati.map(n=>`<div class="chip">${escapeHtml(n)}<button class="chip-remove" data-nome="${escapeHtml(n)}">×</button></div>`).join('');
+  chips.querySelectorAll('.chip-remove').forEach(btn=>{
+    btn.addEventListener('click', ()=>rimuoviMonitorato(btn.dataset.nome));
+  });
 
   const details = document.getElementById('monitorDetails');
   details.innerHTML = STATE.monitorati.map(nome=>{
