@@ -283,6 +283,31 @@ table.atleti-detail-table td.t.no-time{color:var(--text-faint); font-weight:500;
 }
 .chip button:hover{color:var(--danger);}
 .monitor-empty{padding:16px 20px; color:var(--text-faint); font-size:13px;}
+
+.maintenance-toast{
+  position:fixed; top:18px; left:50%; transform:translateX(-50%) translateY(-12px);
+  z-index:200;
+  padding:5px;
+  border-radius:10px;
+  background: repeating-linear-gradient(45deg, #16130A 0px, #16130A 14px, #F2C230 14px, #F2C230 28px);
+  box-shadow:0 10px 28px rgba(15,30,20,.28);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .25s ease, transform .25s ease;
+}
+.maintenance-toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+.maintenance-toast .inner{
+  background:#F2C230;
+  color:#16130A;
+  font-weight:800;
+  font-size:13.5px;
+  letter-spacing:.03em;
+  padding:12px 24px;
+  border-radius:7px;
+  text-transform:uppercase;
+  display:flex; align-items:center; gap:10px;
+  white-space:nowrap;
+}
 .monitor-atleta{padding:10px 20px 16px;}
 .monitor-atleta h3{margin:0 0 8px; font-size:14px; font-family:var(--mono); color:var(--lane-yellow);}
 table.mini{width:100%; border-collapse:collapse; font-size:12.5px;}
@@ -363,6 +388,7 @@ footer.hint{
 
 <div class="banner warn" id="bannerSforamento">⚠️ <span>Durata gare oltre il giorno corrente: alcuni orari sono stati limitati alle 23:59.</span></div>
 <div class="banner info" id="bannerLastEdit"></div>
+<div class="maintenance-toast" id="maintenanceToast"><div class="inner">🚧 Manutenzione centralizzata effettuata</div></div>
 
 <main>
   <div class="lane-rope"></div>
@@ -378,6 +404,7 @@ footer.hint{
     </div>
     <div style="padding:10px 20px 0;">
       <button class="btn small primary" id="btnAddMonitor">+ Aggiungi</button>
+      <button class="btn small danger" id="btnWipeMonitor" style="display:none;">🧹 Pulizia totale (tutte le sessioni)</button>
     </div>
     <div class="chips" id="monitorChips"></div>
     <div id="monitorDetails"></div>
@@ -437,9 +464,11 @@ function updateLockUI(){
   const btn = document.getElementById('btnLock');
   const labelUpload = document.getElementById('labelUpload');
   const btnSettings = document.getElementById('btnSettings');
+  const btnWipeMonitor = document.getElementById('btnWipeMonitor');
   btn.textContent = UNLOCKED ? '🔓 Operatore attivo (blocca)' : '🔒 Modalità operatore';
   labelUpload.style.display = UNLOCKED ? 'inline-flex' : 'none';
   btnSettings.style.display = UNLOCKED ? 'inline-flex' : 'none';
+  btnWipeMonitor.style.display = UNLOCKED ? 'inline-flex' : 'none';
   render();
 }
 document.getElementById('btnLock').addEventListener('click', ()=>{
@@ -815,9 +844,38 @@ sessionRef.on('value', snap=>{
   render();
 });
 
+const monitoratiRootRef = db.ref('monitorati');
+const maintenanceRef = db.ref('maintenance_monitorati');
+let lastMaintenanceTs = null;
+
+function showMaintenanceToast(){
+  document.getElementById('maintenanceToast').classList.add('show');
+  clearTimeout(window.__maintTimeout);
+  window.__maintTimeout = setTimeout(hideMaintenanceToast, 8000); // fallback di sicurezza
+}
+function hideMaintenanceToast(){
+  document.getElementById('maintenanceToast').classList.remove('show');
+}
+
+maintenanceRef.on('value', snap=>{
+  const v = snap.val();
+  if(v && v.ts && v.ts !== lastMaintenanceTs){
+    lastMaintenanceTs = v.ts;
+    showMaintenanceToast();
+  }
+});
+
+document.getElementById('btnWipeMonitor').addEventListener('click', async ()=>{
+  if(!UNLOCKED) return;
+  if(!confirm('Cancellare TUTTI gli atleti monitorati, di TUTTE le sessioni/dispositivi collegati? Operazione irreversibile.')) return;
+  await monitoratiRootRef.remove();
+  await maintenanceRef.set({ ts: Date.now(), operatore: getOperatore() });
+});
+
 monitoratiRef.on('value', snap=>{
   const val = snap.val();
   STATE.monitorati = val ? Object.keys(val).filter(k=>val[k]) : [];
+  if(STATE.monitorati.length === 0) hideMaintenanceToast();
   renderMonitor();
 });
 
