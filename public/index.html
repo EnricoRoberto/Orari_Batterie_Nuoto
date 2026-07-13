@@ -55,6 +55,43 @@ html,body{margin:0;padding:0;}
   box-shadow:0 8px 16px -8px rgba(18,34,44,.18);
 }
 
+.modal-overlay{
+  display:none; position:fixed; inset:0; z-index:300;
+  background:rgba(10,25,35,.45);
+  align-items:center; justify-content:center; padding:20px;
+}
+.modal-overlay.show{display:flex;}
+.modal-panel{
+  background:var(--navy-panel); border-radius:14px; max-width:560px; width:100%;
+  max-height:82vh; display:flex; flex-direction:column; overflow:hidden;
+  box-shadow:0 24px 60px rgba(10,20,30,.35);
+}
+.modal-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 20px; border-bottom:1px solid var(--line);
+}
+.modal-head h2{margin:0; font-size:16px; font-weight:800;}
+.modal-close{
+  background:none; border:none; font-size:22px; line-height:1; color:var(--text-dim);
+  cursor:pointer; padding:2px 8px; border-radius:6px;
+}
+.modal-close:hover{background:var(--navy-panel-2); color:var(--text);}
+.modal-body{padding:18px 20px; overflow-y:auto; font-size:13.5px; color:var(--text);}
+.modal-body h3{font-size:13.5px; margin:16px 0 4px; color:var(--water-bright);}
+.modal-body h3:first-child{margin-top:0;}
+.modal-body p{margin:0 0 4px; line-height:1.5; color:var(--text-dim);}
+
+.log-entry{padding:10px 0; border-bottom:1px solid var(--line);}
+.log-entry:last-child{border-bottom:none;}
+.log-entry-head{display:flex; justify-content:space-between; align-items:baseline; gap:10px;}
+.log-entry-tipo{
+  font-family:var(--mono); font-size:11px; font-weight:700; text-transform:uppercase;
+  color:var(--water-bright); background:var(--navy-panel-2); padding:2px 8px; border-radius:5px;
+}
+.log-entry-time{font-family:var(--mono); font-size:11.5px; color:var(--text-faint); white-space:nowrap;}
+.log-entry-detail{font-size:13px; margin-top:5px; color:var(--text);}
+.log-entry-meta{font-size:11px; color:var(--text-faint); margin-top:4px;}
+
 body{
   background:
     radial-gradient(1200px 600px at 15% -10%, #E2EEF3 0%, transparent 60%),
@@ -122,13 +159,16 @@ header.app{
 input[type=file]{display:none;}
 
 .file-badge{
-  display:inline-flex; align-items:center; gap:8px;
-  font-size:12.5px; color:var(--text-dim);
-  border:1px dashed var(--line);
-  padding:7px 12px; border-radius:8px;
+  display:inline-flex; align-items:center; gap:10px;
+  font-size:13.5px; font-weight:700;
+  padding:10px 16px; border-radius:10px;
+  border:1.5px solid transparent;
+  background:#FCE9E9; color:#8F2323; border-color:#E8B4B4;
 }
-.file-badge .dot{width:7px;height:7px;border-radius:50%; background:var(--past);}
-.file-badge.loaded .dot{background:var(--ok); box-shadow:0 0 8px var(--ok);}
+.file-badge .icon{font-size:18px; line-height:1;}
+.file-badge:not(.loaded) .icon{animation:badgePulse 1.6s ease-in-out infinite;}
+.file-badge.loaded{background:#E3F6ED; color:#146C43; border-color:#9FE0BE;}
+@keyframes badgePulse{0%,100%{opacity:1;}50%{opacity:.45;}}
 
 .settings-panel{
   margin-top:14px;
@@ -313,6 +353,9 @@ table.atleti-detail-table td.t.no-time{color:var(--text-faint); font-weight:500;
 table.mini{width:100%; border-collapse:collapse; font-size:12.5px;}
 table.mini td{padding:5px 8px; border-bottom:1px solid rgba(30,74,102,.35);}
 table.mini td.t{font-family:var(--mono); color:var(--water-bright); font-weight:700;}
+tr.monitor-race-row{cursor:pointer; transition:background .12s;}
+tr.monitor-race-row:hover{background:var(--navy-panel-2);}
+tr.monitor-race-row:hover td.t{color:var(--water);}
 
 .last-edit{font-size:12px; color:var(--text-faint); padding:6px 20px 14px; font-family:var(--mono);}
 
@@ -351,7 +394,7 @@ footer.hint{
         <div class="sub">Cronoprogramma gara — ricalcolo in tempo reale</div>
       </div>
     </div>
-    <div class="file-badge" id="fileBadge"><span class="dot"></span><span id="fileBadgeText">Nessun file caricato</span></div>
+    <div class="file-badge" id="fileBadge"><span class="icon" id="fileBadgeIcon">⚠️</span><span id="fileBadgeText">Nessun file caricato</span></div>
   </div>
 
   <div class="toolbar">
@@ -359,7 +402,9 @@ footer.hint{
     <input type="file" id="pdfInput" accept="application/pdf">
     <button class="btn ghost" id="btnSettings">⚙️ Impostazioni</button>
     <button class="btn ghost" id="btnPrint">🖨️ Stampa / PDF</button>
+    <button class="btn ghost" id="btnHelp">❓ Guida</button>
     <button class="btn ghost" id="btnLock">🔒 Modalità operatore</button>
+    <button class="btn ghost" id="btnLog" style="display:none;">📋 Log modifiche</button>
     <span id="uploadStatus" style="font-size:12.5px;color:var(--text-dim);"></span>
   </div>
 
@@ -383,12 +428,54 @@ footer.hint{
       <label>&nbsp;</label>
       <input type="text" id="setOperatore" placeholder="Il tuo nome/postazione" style="width:180px;">
     </div>
+    <div class="field" id="multiClientField" style="display:none; justify-content:flex-end;">
+      <label>Modalità multi-utente</label>
+      <label style="display:flex; align-items:center; gap:8px; font-family:var(--sans); font-size:13px; font-weight:600; color:var(--text); cursor:pointer;">
+        <input type="checkbox" id="setMultiClient" style="width:18px; height:18px; accent-color:var(--water);">
+        ognuno indipendente
+      </label>
+    </div>
   </div>
 </header>
 
 <div class="banner warn" id="bannerSforamento">⚠️ <span>Durata gare oltre il giorno corrente: alcuni orari sono stati limitati alle 23:59.</span></div>
 <div class="banner info" id="bannerLastEdit"></div>
 <div class="maintenance-toast" id="maintenanceToast"><div class="inner">🚧 Manutenzione centralizzata effettuata</div></div>
+
+<div class="modal-overlay" id="helpModal">
+  <div class="modal-panel">
+    <div class="modal-head">
+      <h2>❓ Guida rapida</h2>
+      <button class="modal-close" id="helpModalClose">×</button>
+    </div>
+    <div class="modal-body">
+      <h3>Caricare la gara</h3>
+      <p>Clicca <b>📄 Carica starting list (PDF)</b> e seleziona il PDF ufficiale con gli iscritti. L'app calcola da sola batterie e orari previsti.</p>
+
+      <h3>Modificare orari e impostazioni</h3>
+      <p>Serve sbloccare la <b>🔒 Modalità operatore</b> inserendo il PIN (solo chi lo conosce). Da lì puoi cambiare corsie/stacco tempi e correggere manualmente l'orario di una batteria: tutte quelle successive si ricalcolano da sole.</p>
+
+      <h3>Atleti monitorati</h3>
+      <p>Cerca un nome nella sezione <b>🎯 Atleti monitorati</b> e aggiungilo: vedrai tutte le sue gare con orario. Cliccando su una sua gara si apre il dettaglio della batteria (stessa apertura/chiusura del pulsante "dettaglio"). La lista è personale, legata a questo browser.</p>
+
+      <h3>Stampa</h3>
+      <p>Il pulsante <b>🖨️ Stampa / PDF</b> genera una versione pulita da stampare o salvare in PDF.</p>
+
+      <h3>Le gare passate</h3>
+      <p>Le batterie con orario già trascorso appaiono in grigio e non sono più modificabili.</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="logModal">
+  <div class="modal-panel">
+    <div class="modal-head">
+      <h2>📋 Log modifiche <span style="font-weight:500; font-size:12px; color:var(--text-faint);">(visibile solo all'operatore)</span></h2>
+      <button class="modal-close" id="logModalClose">×</button>
+    </div>
+    <div class="modal-body" id="logModalBody"></div>
+  </div>
+</div>
 
 <main>
   <div class="lane-rope"></div>
@@ -404,7 +491,7 @@ footer.hint{
     </div>
     <div style="padding:10px 20px 0;">
       <button class="btn small primary" id="btnAddMonitor">+ Aggiungi</button>
-      <button class="btn small danger" id="btnWipeMonitor" style="display:none;">🧹 Pulizia totale (tutte le sessioni)</button>
+      <button class="btn small danger" id="btnWipeMonitor" style="display:none;">🧹 Pulizia totale (PDF + monitorati, tutte le sessioni)</button>
     </div>
     <div class="chips" id="monitorChips"></div>
     <div id="monitorDetails"></div>
@@ -437,7 +524,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-const sessionRef = db.ref('session');
+
 function getClientId(){
   let id = localStorage.getItem('client_id');
   if(!id){
@@ -449,26 +536,83 @@ function getClientId(){
 const CLIENT_ID = getClientId();
 const monitoratiRef = db.ref('monitorati/' + CLIENT_ID);
 
+/* ============================================================
+   MODALITA' MULTI-UTENTE INDIPENDENTE (owner-controlled)
+   Se disattiva (default): tutti condividono lo stesso /session,
+   solo l'operatore (PIN) puo' caricare/modificare.
+   Se attiva: ognuno ha il proprio /sessions/{clientId}, puo'
+   caricare e modificare liberamente SOLO i propri dati.
+   ============================================================ */
+let MULTI_CLIENT = false;
+let sessionRef = null;
+const settingsGlobalRef = db.ref('settings_global');
+const sessionsRootRef = db.ref('sessions');
+
+function computeSessionRef(){
+  return MULTI_CLIENT ? db.ref('sessions/' + CLIENT_ID) : db.ref('session');
+}
+
+function attachSessionListener(){
+  if(sessionRef) sessionRef.off('value');
+  sessionRef = computeSessionRef();
+  sessionRef.on('value', snap=>{
+    if(SUPPRESS_REMOTE) return;
+    const val = snap.val();
+    if(!val){
+      STATE.meta = { fileName:null, uploadedAt:null, corsie:10, staccoBatteria:2, staccoSpecialita:1 };
+      STATE.meeting = [];
+      STATE.lastEdit = null;
+    } else {
+      STATE.meta = val.meta || STATE.meta;
+      STATE.meeting = val.meeting || [];
+      STATE.lastEdit = val.lastEdit || null;
+    }
+    syncSettingsFields();
+    render();
+  });
+}
+
+settingsGlobalRef.on('value', snap=>{
+  const v = snap.val();
+  const wasMulti = MULTI_CLIENT;
+  MULTI_CLIENT = !!(v && v.multiClient);
+  const cb = document.getElementById('setMultiClient');
+  if(cb) cb.checked = MULTI_CLIENT;
+  if(MULTI_CLIENT !== wasMulti || !sessionRef){
+    attachSessionListener();
+  }
+  updateLockUI();
+});
+
+function canEdit(){ return UNLOCKED || MULTI_CLIENT; }
+
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 /* ============================================================
    MODALITA' OPERATORE (PIN) — gate soft: solo chi sblocca puo'
-   caricare PDF, cambiare impostazioni, modificare orari.
+   caricare PDF, cambiare impostazioni, modificare orari (in
+   modalita' condivisa; in modalita' multi-utente puo' farlo
+   chiunque, ma solo sui propri dati).
    Il PIN viaggia nel payload di scrittura e viene verificato
    dalle regole del Realtime Database (vedi database.rules.json).
    ============================================================ */
 const OPERATOR_PIN = "556699"; // <-- imposta un PIN reale prima del deploy, uguale a quello in database.rules.json
 let UNLOCKED = localStorage.getItem('op_unlocked') === '1';
 
+
 function updateLockUI(){
   const btn = document.getElementById('btnLock');
   const labelUpload = document.getElementById('labelUpload');
   const btnSettings = document.getElementById('btnSettings');
   const btnWipeMonitor = document.getElementById('btnWipeMonitor');
+  const multiClientField = document.getElementById('multiClientField');
+  const btnLog = document.getElementById('btnLog');
   btn.textContent = UNLOCKED ? '🔓 Operatore attivo (blocca)' : '🔒 Modalità operatore';
-  labelUpload.style.display = UNLOCKED ? 'inline-flex' : 'none';
-  btnSettings.style.display = UNLOCKED ? 'inline-flex' : 'none';
+  labelUpload.style.display = canEdit() ? 'inline-flex' : 'none';
+  btnSettings.style.display = canEdit() ? 'inline-flex' : 'none';
   btnWipeMonitor.style.display = UNLOCKED ? 'inline-flex' : 'none';
+  if(multiClientField) multiClientField.style.display = UNLOCKED ? 'flex' : 'none';
+  if(btnLog) btnLog.style.display = UNLOCKED ? 'inline-flex' : 'none';
   render();
 }
 document.getElementById('btnLock').addEventListener('click', ()=>{
@@ -731,7 +875,7 @@ let SUPPRESS_REMOTE = false; // evita rimbalzi durante scrittura locale
    UPLOAD PDF
    ============================================================ */
 document.getElementById('pdfInput').addEventListener('change', async (e)=>{
-  if(!UNLOCKED){ alert('Sblocca la modalità operatore per caricare un file.'); e.target.value=''; return; }
+  if(!canEdit()){ alert('Sblocca la modalità operatore per caricare un file.'); e.target.value=''; return; }
   const file = e.target.files[0];
   if(!file) return;
   const statusEl = document.getElementById('uploadStatus');
@@ -775,7 +919,7 @@ document.getElementById('btnSettings').addEventListener('click', ()=>{
   document.getElementById('settingsPanel').classList.toggle('open');
 });
 document.getElementById('btnApplySettings').addEventListener('click', async ()=>{
-  if(!UNLOCKED){ alert('Sblocca la modalità operatore per modificare le impostazioni.'); return; }
+  if(!canEdit()){ alert('Sblocca la modalità operatore per modificare le impostazioni.'); return; }
   const corsie = parseInt(document.getElementById('setCorsie').value,10) || 10;
   const staccoBatteria = parseFloat(document.getElementById('setStaccoBatteria').value) || 0;
   const staccoSpecialita = parseFloat(document.getElementById('setStaccoSpecialita').value) || 0;
@@ -818,10 +962,80 @@ document.getElementById('btnApplySettings').addEventListener('click', async ()=>
   document.getElementById('settingsPanel').classList.remove('open');
 });
 
+document.getElementById('setMultiClient').addEventListener('change', async (e)=>{
+  if(!UNLOCKED) { e.target.checked = MULTI_CLIENT; return; }
+  const enable = e.target.checked;
+  await settingsGlobalRef.set({ multiClient: enable, _pin: OPERATOR_PIN });
+  await pushAuditLog({
+    tipo:'multiclient',
+    dettaglio: enable ? 'Modalità multi-utente ATTIVATA (ogni utente indipendente)' : 'Modalità multi-utente DISATTIVATA (torna condivisa)',
+    timestamp:new Date().toISOString(), operatore:getOperatore()
+  });
+});
+
 /* ============================================================
    STAMPA
    ============================================================ */
 document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
+
+/* ============================================================
+   GUIDA
+   ============================================================ */
+document.getElementById('btnHelp').addEventListener('click', ()=>{
+  document.getElementById('helpModal').classList.add('show');
+});
+document.getElementById('helpModalClose').addEventListener('click', ()=>{
+  document.getElementById('helpModal').classList.remove('show');
+});
+document.getElementById('helpModal').addEventListener('click', (e)=>{
+  if(e.target.id === 'helpModal') document.getElementById('helpModal').classList.remove('show');
+});
+
+/* ============================================================
+   LOG MODIFICHE (solo owner)
+   ============================================================ */
+const auditLogRef = db.ref('audit_log');
+async function pushAuditLog(entry){
+  if(!entry) return;
+  try{
+    await auditLogRef.push({
+      ...entry,
+      clientId: CLIENT_ID,
+      modalita: MULTI_CLIENT ? 'multi' : 'condivisa'
+    });
+  }catch(err){ console.warn('audit log non scritto:', err); }
+}
+
+document.getElementById('btnLog').addEventListener('click', ()=>{
+  document.getElementById('logModal').classList.add('show');
+});
+document.getElementById('logModalClose').addEventListener('click', ()=>{
+  document.getElementById('logModal').classList.remove('show');
+});
+document.getElementById('logModal').addEventListener('click', (e)=>{
+  if(e.target.id === 'logModal') document.getElementById('logModal').classList.remove('show');
+});
+
+auditLogRef.limitToLast(200).on('value', snap=>{
+  const val = snap.val();
+  const entries = val ? Object.values(val).sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp)) : [];
+  const el = document.getElementById('logModalBody');
+  if(!entries.length){
+    el.innerHTML = '<div class="monitor-empty">Nessuna modifica registrata finora.</div>';
+    return;
+  }
+  el.innerHTML = entries.map(e=>{
+    const d = new Date(e.timestamp);
+    return `<div class="log-entry">
+      <div class="log-entry-head">
+        <span class="log-entry-tipo">${escapeHtml(e.tipo||'')}</span>
+        <span class="log-entry-time">${d.toLocaleString('it-IT')}</span>
+      </div>
+      <div class="log-entry-detail">${escapeHtml(e.dettaglio||'')}</div>
+      <div class="log-entry-meta">${escapeHtml(e.operatore||'')} · modalità ${escapeHtml(e.modalita||'')} · client ${escapeHtml((e.clientId||'').slice(0,8))}</div>
+    </div>`;
+  }).join('');
+});
 
 /* ============================================================
    SYNC FIREBASE
@@ -829,20 +1043,10 @@ document.getElementById('btnPrint').addEventListener('click', ()=>window.print()
 async function salvaSessione(){
   SUPPRESS_REMOTE = true;
   await sessionRef.set({ meta: STATE.meta, meeting: STATE.meeting, lastEdit: STATE.lastEdit, _pin: OPERATOR_PIN });
+  await pushAuditLog(STATE.lastEdit);
   setTimeout(()=>SUPPRESS_REMOTE=false, 400);
   render();
 }
-
-sessionRef.on('value', snap=>{
-  if(SUPPRESS_REMOTE) return;
-  const val = snap.val();
-  if(!val) return;
-  STATE.meta = val.meta || STATE.meta;
-  STATE.meeting = val.meeting || [];
-  STATE.lastEdit = val.lastEdit || null;
-  syncSettingsFields();
-  render();
-});
 
 const monitoratiRootRef = db.ref('monitorati');
 const maintenanceRef = db.ref('maintenance_monitorati');
@@ -867,9 +1071,16 @@ maintenanceRef.on('value', snap=>{
 
 document.getElementById('btnWipeMonitor').addEventListener('click', async ()=>{
   if(!UNLOCKED) return;
-  if(!confirm('Cancellare TUTTI gli atleti monitorati, di TUTTE le sessioni/dispositivi collegati? Operazione irreversibile.')) return;
+  if(!confirm('Cancellare TUTTI i PDF caricati (di tutti gli utenti), TUTTI gli atleti monitorati e resettare le impostazioni ai valori di default? Operazione irreversibile.')) return;
   await monitoratiRootRef.remove();
+  await db.ref('session').remove();
+  await sessionsRootRef.remove();
   await maintenanceRef.set({ ts: Date.now(), operatore: getOperatore() });
+  await pushAuditLog({
+    tipo:'pulizia_totale',
+    dettaglio:'Pulizia totale: rimossi tutti i PDF/sessioni (condivisa e multi-utente) e tutti gli atleti monitorati; impostazioni resettate ai default.',
+    timestamp:new Date().toISOString(), operatore:getOperatore()
+  });
 });
 
 monitoratiRef.on('value', snap=>{
@@ -889,7 +1100,7 @@ function syncSettingsFields(){
    EDIT ORARIO BATTERIA (con ricalcolo a cascata)
    ============================================================ */
 async function onOrarioEdit(parteIdx, eventoIdx, battIdx, nuovoValoreHM){
-  if(!UNLOCKED) return;
+  if(!canEdit()) return;
   const parte = STATE.meeting[parteIdx];
   const b = parte.eventi[eventoIdx].batterie[battIdx];
   const vecchio = b.orario;
@@ -969,13 +1180,16 @@ function render(){
   // badge file
   const fb = document.getElementById('fileBadge');
   const fbt = document.getElementById('fileBadgeText');
+  const fbi = document.getElementById('fileBadgeIcon');
   if(STATE.meta.fileName){
     fb.classList.add('loaded');
+    fbi.textContent = '✅';
     const d = new Date(STATE.meta.uploadedAt);
     fbt.textContent = `${STATE.meta.fileName} · caricato ${fmtHM(d)} il ${d.toLocaleDateString('it-IT')}`;
   } else {
     fb.classList.remove('loaded');
-    fbt.textContent = 'Nessun file caricato';
+    fbi.textContent = '⚠️';
+    fbt.textContent = MULTI_CLIENT ? 'Nessun file caricato (la tua sessione)' : 'Nessun file caricato';
   }
   syncSettingsFields();
 
@@ -1034,7 +1248,7 @@ function render(){
         html += `<tr class="batteria-row ${isPast?'past':''} ${isCurrent?'current':''}" id="${rowId}">
           <td class="batteria-numero">${b.numero}<span class="tot">/${b.totale}</span></td>
           <td><input type="time" class="orario-input ${b.manuale?'manual':''}" value="${fmtHM(orarioDate)}"
-              ${(isPast || !UNLOCKED)?'disabled':''}
+              ${(isPast || !canEdit())?'disabled':''}
               onchange="onOrarioEdit(${pIdx},${eIdx},${bIdx},this.value)"></td>
           <td class="n-atleti">${b.atleti.length} corsie</td>
           <td><button class="expand-btn" onclick="toggleDetail('${detailId}')">dettaglio</button></td>
@@ -1093,16 +1307,32 @@ function renderMonitor(){
   const details = document.getElementById('monitorDetails');
   details.innerHTML = STATE.monitorati.map(nome=>{
     const gare = [];
-    STATE.meeting.forEach(parte=>parte.eventi.forEach(ev=>ev.batterie.forEach(b=>{
+    STATE.meeting.forEach((parte,pIdx)=>parte.eventi.forEach((ev,eIdx)=>ev.batterie.forEach((b,bIdx)=>{
       const found = b.atleti.find(a=>a.nome.toUpperCase()===nome.toUpperCase());
-      if(found) gare.push({specialita:ev.specialita, numero:b.numero, totale:b.totale, orario:new Date(b.orario), parte:parte.parte, data:parte.data});
+      if(found) gare.push({specialita:ev.specialita, numero:b.numero, totale:b.totale, orario:new Date(b.orario), parte:parte.parte, data:parte.data, pIdx, eIdx, bIdx});
     })));
     gare.sort((a,b)=>a.orario-b.orario);
-    if(!gare.length) return `<div class="monitor-atleta"><h3>${nome}</h3><div class="monitor-empty">Nessuna gara trovata nel documento caricato.</div></div>`;
-    return `<div class="monitor-atleta"><h3>${nome}</h3><table class="mini">
-      ${gare.map(g=>`<tr><td>${g.specialita}</td><td>${g.numero}/${g.totale}</td><td class="t">${fmtHM(g.orario)}</td><td style="color:var(--text-faint)">${fmtDataIt(g.data)}</td></tr>`).join('')}
+    if(!gare.length) return `<div class="monitor-atleta"><h3>${escapeHtml(nome)}</h3><div class="monitor-empty">Nessuna gara trovata nel documento caricato.</div></div>`;
+    return `<div class="monitor-atleta"><h3>${escapeHtml(nome)}</h3><table class="mini">
+      ${gare.map(g=>`<tr class="monitor-race-row" data-detail-id="detail_${g.pIdx}-${g.eIdx}-${g.bIdx}" title="Clicca per vedere il dettaglio della batteria"><td>${g.specialita}</td><td>${g.numero}/${g.totale}</td><td class="t">${fmtHM(g.orario)}</td><td style="color:var(--text-faint)">${fmtDataIt(g.data)}</td></tr>`).join('')}
     </table></div>`;
   }).join('');
+
+  details.querySelectorAll('.monitor-race-row').forEach(row=>{
+    row.addEventListener('click', ()=>{
+      const id = row.dataset.detailId;
+      const el = document.getElementById(id);
+      if(!el){
+        alert('Il dettaglio non è al momento disponibile su questa pagina.');
+        return;
+      }
+      const wasHidden = (el.style.display === 'none' || !el.style.display);
+      toggleDetail(id);
+      if(wasHidden){
+        el.scrollIntoView({behavior:'smooth', block:'center'});
+      }
+    });
+  });
 }
 
 /* refresh periodico per aggiornare "batteria attuale" e stato passato/futuro */
