@@ -4,11 +4,23 @@
       ".read": true,
       ".write": "newData.child('_pin').val() === '556699'"
     },
+    "sessions": {
+      ".read": true,
+      ".write": true
+    },
     "monitorati": {
       ".read": true,
       ".write": true
     },
     "maintenance_monitorati": {
+      ".read": true,
+      ".write": true
+    },
+    "settings_global": {
+      ".read": true,
+      ".write": "newData.child('_pin').val() === '556699'"
+    },
+    "audit_log": {
       ".read": true,
       ".write": true
     }
