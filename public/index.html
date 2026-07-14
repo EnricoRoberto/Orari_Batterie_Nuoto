@@ -54,6 +54,23 @@ html,body{margin:0;padding:0;}
   z-index:20;
   box-shadow:0 8px 16px -8px rgba(18,34,44,.18);
 }
+.monitor-toggle-btn{
+  background:var(--navy-panel-2); border:1px solid var(--line); color:var(--text-dim);
+  width:28px; height:28px; border-radius:7px; cursor:pointer; font-size:14px;
+  display:flex; align-items:center; justify-content:center;
+  transition:transform .2s ease, background .15s;
+  flex-shrink:0;
+}
+.monitor-toggle-btn:hover{background:var(--navy-panel); color:var(--text);}
+#monitorBlock.monitor-collapsed .monitor-toggle-btn{transform:rotate(-90deg);}
+#monitorCollapsible{
+  max-height:2000px; overflow:hidden;
+  transition:max-height .28s ease, opacity .2s ease;
+  opacity:1;
+}
+#monitorBlock.monitor-collapsed #monitorCollapsible{
+  max-height:0; opacity:0;
+}
 
 .modal-overlay{
   display:none; position:fixed; inset:0; z-index:300;
@@ -473,6 +490,10 @@ footer.hint{
       <h2>📋 Log modifiche <span style="font-weight:500; font-size:12px; color:var(--text-faint);">(visibile solo all'operatore)</span></h2>
       <button class="modal-close" id="logModalClose">×</button>
     </div>
+    <div style="padding:10px 20px 0; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+      <span style="font-size:11.5px; color:var(--text-faint);">Storico conservato per 3 giorni, poi rimosso automaticamente.</span>
+      <button class="btn small danger" id="btnClearLog">🗑️ Cancella tutti i log</button>
+    </div>
     <div class="modal-body" id="logModalBody"></div>
   </div>
 </div>
@@ -483,18 +504,23 @@ footer.hint{
   <section class="block" id="monitorBlock">
     <div class="block-head">
       <h2>🎯 Atleti monitorati</h2>
-      <span class="meta">elenco personale — legato a questo browser/dispositivo</span>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="meta">elenco personale — legato a questo browser/dispositivo</span>
+        <button class="monitor-toggle-btn" id="btnMonitorToggle" title="Comprimi/espandi">▾</button>
+      </div>
     </div>
-    <div class="monitor-search" style="padding:16px 20px 0;">
-      <input type="text" id="monitorInput" list="atletiDatalist" placeholder="Scrivi nome o cognome…" autocomplete="off">
-      <datalist id="atletiDatalist"></datalist>
+    <div id="monitorCollapsible">
+      <div class="monitor-search" style="padding:16px 20px 0;">
+        <input type="text" id="monitorInput" list="atletiDatalist" placeholder="Scrivi nome o cognome…" autocomplete="off">
+        <datalist id="atletiDatalist"></datalist>
+      </div>
+      <div style="padding:10px 20px 0;">
+        <button class="btn small primary" id="btnAddMonitor">+ Aggiungi</button>
+        <button class="btn small danger" id="btnWipeMonitor" style="display:none;">🧹 Pulizia totale (PDF + monitorati, tutte le sessioni)</button>
+      </div>
+      <div class="chips" id="monitorChips"></div>
+      <div id="monitorDetails"></div>
     </div>
-    <div style="padding:10px 20px 0;">
-      <button class="btn small primary" id="btnAddMonitor">+ Aggiungi</button>
-      <button class="btn small danger" id="btnWipeMonitor" style="display:none;">🧹 Pulizia totale (PDF + monitorati, tutte le sessioni)</button>
-    </div>
-    <div class="chips" id="monitorChips"></div>
-    <div id="monitorDetails"></div>
   </section>
 
   <div id="content">
@@ -995,6 +1021,23 @@ document.getElementById('helpModal').addEventListener('click', (e)=>{
    LOG MODIFICHE (solo owner)
    ============================================================ */
 const auditLogRef = db.ref('audit_log');
+const AUDIT_RETENTION_MS = 3 * 24 * 60 * 60 * 1000; // 3 giorni
+
+async function pruneOldLogs(){
+  try{
+    const snap = await auditLogRef.once('value');
+    const val = snap.val();
+    if(!val) return;
+    const cutoff = Date.now() - AUDIT_RETENTION_MS;
+    const updates = {};
+    Object.entries(val).forEach(([key, entry])=>{
+      const t = new Date(entry.timestamp).getTime();
+      if(!t || isNaN(t) || t < cutoff) updates[key] = null;
+    });
+    if(Object.keys(updates).length) await auditLogRef.update(updates);
+  }catch(err){ console.warn('pulizia automatica log fallita:', err); }
+}
+
 async function pushAuditLog(entry){
   if(!entry) return;
   try{
@@ -1003,17 +1046,24 @@ async function pushAuditLog(entry){
       clientId: CLIENT_ID,
       modalita: MULTI_CLIENT ? 'multi' : 'condivisa'
     });
+    pruneOldLogs(); // non blocco l'operazione principale in attesa della pulizia
   }catch(err){ console.warn('audit log non scritto:', err); }
 }
 
 document.getElementById('btnLog').addEventListener('click', ()=>{
   document.getElementById('logModal').classList.add('show');
+  pruneOldLogs();
 });
 document.getElementById('logModalClose').addEventListener('click', ()=>{
   document.getElementById('logModal').classList.remove('show');
 });
 document.getElementById('logModal').addEventListener('click', (e)=>{
   if(e.target.id === 'logModal') document.getElementById('logModal').classList.remove('show');
+});
+document.getElementById('btnClearLog').addEventListener('click', async ()=>{
+  if(!UNLOCKED) return;
+  if(!confirm('Cancellare TUTTO lo storico delle modifiche? Operazione irreversibile.')) return;
+  await auditLogRef.remove();
 });
 
 auditLogRef.limitToLast(200).on('value', snap=>{
@@ -1159,6 +1209,29 @@ document.getElementById('monitorInput').addEventListener('keydown', async (e)=>{
     e.target.value='';
   }
 });
+
+/* ============================================================
+   COLLASSA/ESPANDI SEZIONE MONITOR (manuale + auto su scroll giù)
+   ============================================================ */
+function setMonitorCollapsed(collapsed){
+  document.getElementById('monitorBlock').classList.toggle('monitor-collapsed', collapsed);
+}
+document.getElementById('btnMonitorToggle').addEventListener('click', ()=>{
+  const el = document.getElementById('monitorBlock');
+  setMonitorCollapsed(!el.classList.contains('monitor-collapsed'));
+});
+
+let lastScrollY = window.scrollY;
+window.addEventListener('scroll', ()=>{
+  const monitorBlock = document.getElementById('monitorBlock');
+  const hasAtleti = monitorBlock.classList.contains('monitor-sticky'); // sticky solo se >=1 atleta monitorato
+  const currentY = window.scrollY;
+  const scrollingDown = currentY > lastScrollY + 4; // piccola soglia anti-jitter
+  if(hasAtleti && scrollingDown && !monitorBlock.classList.contains('monitor-collapsed')){
+    setMonitorCollapsed(true);
+  }
+  lastScrollY = currentY;
+}, { passive: true });
 
 /* ============================================================
    RENDER
