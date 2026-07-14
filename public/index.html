@@ -1218,19 +1218,28 @@ function setMonitorCollapsed(collapsed){
 }
 document.getElementById('btnMonitorToggle').addEventListener('click', ()=>{
   const el = document.getElementById('monitorBlock');
-  setMonitorCollapsed(!el.classList.contains('monitor-collapsed'));
+  const nowCollapsed = !el.classList.contains('monitor-collapsed');
+  setMonitorCollapsed(nowCollapsed);
+  if(!nowCollapsed) scrollCheckpointY = window.scrollY; // riespanso manualmente: riparte il conteggio da qui
 });
 
-let lastScrollY = window.scrollY;
+let scrollCheckpointY = window.scrollY;
+let collapseTimer = null;
+const COLLAPSE_MIN_DELTA = 70;   // px minimi di scroll verso il basso prima di considerare il collasso
+const COLLAPSE_DEBOUNCE_MS = 500; // attesa dopo che lo scroll si ferma/rallenta
+
 window.addEventListener('scroll', ()=>{
-  const monitorBlock = document.getElementById('monitorBlock');
-  const hasAtleti = monitorBlock.classList.contains('monitor-sticky'); // sticky solo se >=1 atleta monitorato
-  const currentY = window.scrollY;
-  const scrollingDown = currentY > lastScrollY + 4; // piccola soglia anti-jitter
-  if(hasAtleti && scrollingDown && !monitorBlock.classList.contains('monitor-collapsed')){
-    setMonitorCollapsed(true);
-  }
-  lastScrollY = currentY;
+  clearTimeout(collapseTimer);
+  collapseTimer = setTimeout(()=>{
+    const monitorBlock = document.getElementById('monitorBlock');
+    const hasAtleti = monitorBlock.classList.contains('monitor-sticky'); // sticky solo se >=1 atleta monitorato
+    const currentY = window.scrollY;
+    const delta = currentY - scrollCheckpointY;
+    if(hasAtleti && delta > COLLAPSE_MIN_DELTA && !monitorBlock.classList.contains('monitor-collapsed')){
+      setMonitorCollapsed(true);
+    }
+    scrollCheckpointY = currentY;
+  }, COLLAPSE_DEBOUNCE_MS);
 }, { passive: true });
 
 /* ============================================================
