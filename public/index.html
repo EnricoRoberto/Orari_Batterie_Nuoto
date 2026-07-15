@@ -417,6 +417,7 @@ footer.hint{
   <div class="toolbar">
     <label class="btn primary" for="pdfInput" id="labelUpload">📄 Carica starting list (PDF)</label>
     <input type="file" id="pdfInput" accept="application/pdf">
+    <button class="btn ghost" id="btnFindOnFedernuoto" style="display:none;">🔗 Trova su Federnuoto FVG</button>
     <button class="btn ghost" id="btnSettings">⚙️ Impostazioni</button>
     <button class="btn ghost" id="btnPrint">🖨️ Stampa / PDF</button>
     <button class="btn ghost" id="btnHelp">❓ Guida</button>
@@ -468,6 +469,7 @@ footer.hint{
     <div class="modal-body">
       <h3>Caricare la gara</h3>
       <p>Clicca <b>📄 Carica starting list (PDF)</b> e seleziona il PDF ufficiale con gli iscritti. L'app calcola da sola batterie e orari previsti.</p>
+      <p>Il pulsante <b>🔗 Trova su Federnuoto FVG</b> apre la pagina dei comunicati del comitato regionale in una nuova scheda, per cercare e scaricare la gara.</p>
 
       <h3>Modificare orari e impostazioni</h3>
       <p>Serve sbloccare la <b>🔒 Modalità operatore</b> inserendo il PIN (solo chi lo conosce). Da lì puoi cambiare corsie/stacco tempi e correggere manualmente l'orario di una batteria: tutte quelle successive si ricalcolano da sole.</p>
@@ -633,9 +635,11 @@ function updateLockUI(){
   const btnWipeMonitor = document.getElementById('btnWipeMonitor');
   const multiClientField = document.getElementById('multiClientField');
   const btnLog = document.getElementById('btnLog');
+  const btnFindOnFedernuoto = document.getElementById('btnFindOnFedernuoto');
   btn.textContent = UNLOCKED ? '🔓 Operatore attivo (blocca)' : '🔒 Modalità operatore';
   labelUpload.style.display = canEdit() ? 'inline-flex' : 'none';
   btnSettings.style.display = canEdit() ? 'inline-flex' : 'none';
+  btnFindOnFedernuoto.style.display = canEdit() ? 'inline-flex' : 'none';
   btnWipeMonitor.style.display = UNLOCKED ? 'inline-flex' : 'none';
   if(multiClientField) multiClientField.style.display = UNLOCKED ? 'flex' : 'none';
   if(btnLog) btnLog.style.display = UNLOCKED ? 'inline-flex' : 'none';
@@ -900,10 +904,7 @@ let SUPPRESS_REMOTE = false; // evita rimbalzi durante scrittura locale
 /* ============================================================
    UPLOAD PDF
    ============================================================ */
-document.getElementById('pdfInput').addEventListener('change', async (e)=>{
-  if(!canEdit()){ alert('Sblocca la modalità operatore per caricare un file.'); e.target.value=''; return; }
-  const file = e.target.files[0];
-  if(!file) return;
+async function elaboraECaricaPdf(fileOrBlob, nomeFile, origine){
   const statusEl = document.getElementById('uploadStatus');
   statusEl.textContent = 'Estrazione in corso…';
   try{
@@ -911,7 +912,7 @@ document.getElementById('pdfInput').addEventListener('change', async (e)=>{
     const staccoBatteria = parseFloat(document.getElementById('setStaccoBatteria').value) || 0;
     const staccoSpecialita = parseFloat(document.getElementById('setStaccoSpecialita').value) || 0;
 
-    const eventiRaw = await parsePdf(file);
+    const eventiRaw = await parsePdf(fileOrBlob);
     if(eventiRaw.length===0){
       statusEl.textContent = 'Nessun evento riconosciuto nel PDF.';
       return;
@@ -920,13 +921,13 @@ document.getElementById('pdfInput').addEventListener('change', async (e)=>{
     ricalcolaMeeting(meeting, staccoBatteria, staccoSpecialita);
 
     STATE.meta = {
-      fileName: file.name,
+      fileName: nomeFile,
       uploadedAt: new Date().toISOString(),
       corsie, staccoBatteria, staccoSpecialita
     };
     STATE.meeting = meeting;
     STATE.lastEdit = {
-      tipo:'upload', dettaglio:`Caricato nuovo file "${file.name}" (${eventiRaw.length} specialità)`,
+      tipo:'upload', dettaglio:`Caricato nuovo file "${nomeFile}" (${eventiRaw.length} specialità)${origine ? ' — '+origine : ''}`,
       timestamp:new Date().toISOString(), operatore:getOperatore()
     };
     await salvaSessione();
@@ -934,8 +935,20 @@ document.getElementById('pdfInput').addEventListener('change', async (e)=>{
   }catch(err){
     console.error(err);
     statusEl.textContent = 'Errore nella lettura del PDF: '+err.message;
+    throw err;
   }
+}
+
+document.getElementById('pdfInput').addEventListener('change', async (e)=>{
+  if(!canEdit()){ alert('Sblocca la modalità operatore per caricare un file.'); e.target.value=''; return; }
+  const file = e.target.files[0];
+  if(!file) return;
+  try{ await elaboraECaricaPdf(file, file.name, null); }catch(err){ /* messaggio già mostrato in statusEl */ }
   e.target.value = '';
+});
+
+document.getElementById('btnFindOnFedernuoto').addEventListener('click', ()=>{
+  window.open('https://federnuotofriuliveneziagiulia.it/comunicati/', '_blank', 'noopener');
 });
 
 /* ============================================================
@@ -1122,15 +1135,26 @@ maintenanceRef.on('value', snap=>{
 document.getElementById('btnWipeMonitor').addEventListener('click', async ()=>{
   if(!UNLOCKED) return;
   if(!confirm('Cancellare TUTTI i PDF caricati (di tutti gli utenti), TUTTI gli atleti monitorati e resettare le impostazioni ai valori di default? Operazione irreversibile.')) return;
-  await monitoratiRootRef.remove();
-  await db.ref('session').remove();
-  await sessionsRootRef.remove();
-  await maintenanceRef.set({ ts: Date.now(), operatore: getOperatore() });
-  await pushAuditLog({
+
+  const errori = [];
+  async function tentativo(nome, promessa){
+    try{ await promessa; }
+    catch(err){ console.error(`Pulizia totale — fallito step "${nome}":`, err); errori.push(nome); }
+  }
+
+  await tentativo('monitorati', monitoratiRootRef.remove());
+  await tentativo('session condivisa', db.ref('session').remove());
+  await tentativo('sessions multi-utente', sessionsRootRef.remove());
+  await tentativo('banner manutenzione', maintenanceRef.set({ ts: Date.now(), operatore: getOperatore() }));
+  await tentativo('log modifiche', pushAuditLog({
     tipo:'pulizia_totale',
     dettaglio:'Pulizia totale: rimossi tutti i PDF/sessioni (condivisa e multi-utente) e tutti gli atleti monitorati; impostazioni resettate ai default.',
     timestamp:new Date().toISOString(), operatore:getOperatore()
-  });
+  }));
+
+  if(errori.length){
+    alert('Pulizia completata parzialmente. Passaggi falliti: '+errori.join(', ')+'.\n\nProbabile causa: le regole del database (database.rules.json) non sono aggiornate/ripubblicate su Firebase. Controlla la console per i dettagli.');
+  }
 });
 
 monitoratiRef.on('value', snap=>{
