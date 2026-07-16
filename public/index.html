@@ -47,12 +47,24 @@ html,body{margin:0;padding:0;}
 }
 .bg-logo img{width:100%; height:auto; display:block;}
 
-#monitorBlock{position:relative; z-index:5;}
+#monitorBlock{
+  position:relative; z-index:5;
+  border:2px solid var(--water);
+  box-shadow:0 4px 18px rgba(11,122,148,.18), 0 1px 3px rgba(18,34,44,.06);
+}
+#monitorBlock .block-head{
+  background:linear-gradient(180deg, rgba(11,122,148,.07), transparent);
+  border-bottom:1px solid var(--water);
+}
+#monitorBlock .block-head h2{
+  font-size:18.5px;
+  color:var(--water-bright);
+}
 #monitorBlock.monitor-sticky{
   position:sticky;
   top:0;
   z-index:20;
-  box-shadow:0 8px 16px -8px rgba(18,34,44,.18);
+  box-shadow:0 4px 18px rgba(11,122,148,.18), 0 8px 16px -6px rgba(18,34,44,.22);
 }
 .monitor-toggle-btn{
   background:var(--navy-panel-2); border:1px solid var(--line); color:var(--text-dim);
