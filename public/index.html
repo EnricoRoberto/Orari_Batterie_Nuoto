@@ -433,7 +433,7 @@ footer.hint{
     <button class="btn ghost" id="btnSettings">⚙️ Impostazioni</button>
     <button class="btn ghost" id="btnPrint">🖨️ Stampa / PDF</button>
     <button class="btn ghost" id="btnHelp">❓ Guida</button>
-    <button class="btn ghost" id="btnLock">🔒 Modalità operatore</button>
+    <button class="btn ghost" id="btnLock">👤 Modalità Utente</button>
     <button class="btn ghost" id="btnLog" style="display:none;">📋 Log modifiche</button>
     <span id="uploadStatus" style="font-size:12.5px;color:var(--text-dim);"></span>
   </div>
@@ -484,7 +484,7 @@ footer.hint{
       <p>Il pulsante <b>🔗 Trova su Federnuoto FVG</b> apre la pagina dei comunicati del comitato regionale in una nuova scheda, per cercare e scaricare la gara.</p>
 
       <h3>Modificare orari e impostazioni</h3>
-      <p>Serve sbloccare la <b>🔒 Modalità operatore</b> inserendo il PIN (solo chi lo conosce). Da lì puoi cambiare corsie/stacco tempi e correggere manualmente l'orario di una batteria: tutte quelle successive si ricalcolano da sole.</p>
+      <p>Serve passare in <b>🛡️ Amministratore</b> inserendo il PIN (solo chi lo conosce). Da lì puoi cambiare corsie/stacco tempi e correggere manualmente l'orario di una batteria: tutte quelle successive si ricalcolano da sole.</p>
 
       <h3>Atleti monitorati</h3>
       <p>Cerca un nome nella sezione <b>🎯 Atleti monitorati</b> e aggiungilo: vedrai tutte le sue gare con orario. Cliccando su una sua gara si apre il dettaglio della batteria (stessa apertura/chiusura del pulsante "dettaglio"). La lista è personale, legata a questo browser.</p>
@@ -501,7 +501,7 @@ footer.hint{
 <div class="modal-overlay" id="logModal">
   <div class="modal-panel">
     <div class="modal-head">
-      <h2>📋 Log modifiche <span style="font-weight:500; font-size:12px; color:var(--text-faint);">(visibile solo all'operatore)</span></h2>
+      <h2>📋 Log modifiche <span style="font-weight:500; font-size:12px; color:var(--text-faint);">(visibile solo all'Amministratore)</span></h2>
       <button class="modal-close" id="logModalClose">×</button>
     </div>
     <div style="padding:10px 20px 0; display:flex; align-items:center; justify-content:space-between; gap:10px;">
@@ -630,7 +630,7 @@ function canEdit(){ return UNLOCKED || MULTI_CLIENT; }
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 /* ============================================================
-   MODALITA' OPERATORE (PIN) — gate soft: solo chi sblocca puo'
+   MODALITA' AMMINISTRATORE (PIN) — gate soft: solo chi sblocca puo'
    caricare PDF, cambiare impostazioni, modificare orari (in
    modalita' condivisa; in modalita' multi-utente puo' farlo
    chiunque, ma solo sui propri dati).
@@ -649,7 +649,7 @@ function updateLockUI(){
   const multiClientField = document.getElementById('multiClientField');
   const btnLog = document.getElementById('btnLog');
   const btnFindOnFedernuoto = document.getElementById('btnFindOnFedernuoto');
-  btn.textContent = UNLOCKED ? '🔓 Operatore attivo (blocca)' : '🔒 Modalità operatore';
+  btn.textContent = UNLOCKED ? '🛡️ Amministratore (torna a Utente)' : '👤 Modalità Utente';
   labelUpload.style.display = canEdit() ? 'inline-flex' : 'none';
   btnSettings.style.display = canEdit() ? 'inline-flex' : 'none';
   btnFindOnFedernuoto.style.display = canEdit() ? 'inline-flex' : 'none';
@@ -665,7 +665,7 @@ document.getElementById('btnLock').addEventListener('click', ()=>{
     updateLockUI();
     return;
   }
-  const p = prompt('PIN operatore:');
+  const p = prompt('PIN Amministratore:');
   if(p === null) return;
   if(p === OPERATOR_PIN){
     UNLOCKED = true;
@@ -953,7 +953,7 @@ async function elaboraECaricaPdf(fileOrBlob, nomeFile, origine){
 }
 
 document.getElementById('pdfInput').addEventListener('change', async (e)=>{
-  if(!canEdit()){ alert('Sblocca la modalità operatore per caricare un file.'); e.target.value=''; return; }
+  if(!canEdit()){ alert('Passa in modalità Amministratore per caricare un file.'); e.target.value=''; return; }
   const file = e.target.files[0];
   if(!file) return;
   try{ await elaboraECaricaPdf(file, file.name, null); }catch(err){ /* messaggio già mostrato in statusEl */ }
@@ -971,7 +971,7 @@ document.getElementById('btnSettings').addEventListener('click', ()=>{
   document.getElementById('settingsPanel').classList.toggle('open');
 });
 document.getElementById('btnApplySettings').addEventListener('click', async ()=>{
-  if(!canEdit()){ alert('Sblocca la modalità operatore per modificare le impostazioni.'); return; }
+  if(!canEdit()){ alert('Passa in modalità Amministratore per modificare le impostazioni.'); return; }
   const corsie = parseInt(document.getElementById('setCorsie').value,10) || 10;
   const staccoBatteria = parseFloat(document.getElementById('setStaccoBatteria').value) || 0;
   const staccoSpecialita = parseFloat(document.getElementById('setStaccoSpecialita').value) || 0;
