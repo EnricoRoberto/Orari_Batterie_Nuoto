@@ -252,6 +252,21 @@ input[type=file]{display:none;}
   padding:8px 10px; border-radius:6px; font-family:var(--mono); font-size:14px; width:110px;
 }
 .field input:focus{outline:none; border-color:var(--water-bright);}
+.field select{
+  background:var(--navy-deep); border:1px solid var(--line); color:var(--text);
+  padding:8px 10px; border-radius:6px; font-family:var(--sans); font-size:13.5px; max-width:260px;
+}
+.piscine-admin{width:100%; display:flex; flex-direction:column; gap:8px; border-top:1px solid var(--line); padding-top:12px;}
+.piscine-admin > label{font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-dim); font-weight:600;}
+.piscina-row{display:flex; gap:8px; align-items:center;}
+.piscina-row input{
+  background:var(--navy-deep); border:1px solid var(--line); color:var(--text);
+  padding:7px 9px; border-radius:6px; font-size:13.5px;
+}
+.piscina-row input.nome{flex:1; min-width:0; font-family:var(--sans);}
+.piscina-row input.corsie{width:70px; font-family:var(--mono);}
+.piscine-actions{display:flex; gap:8px;}
+.luogo-gara{margin:0 0 14px; font-size:13.5px; font-weight:700; color:var(--text-dim);}
 
 .banner{
   position:relative; z-index:1;
@@ -475,6 +490,10 @@ footer.hint{
 
   <div class="settings-panel" id="settingsPanel">
     <div class="field">
+      <label>Piscina gara</label>
+      <select id="setPiscina"></select>
+    </div>
+    <div class="field">
       <label>Corsie vasca</label>
       <input type="number" id="setCorsie" min="1" max="12" value="10">
     </div>
@@ -499,6 +518,14 @@ footer.hint{
         <input type="checkbox" id="setMultiClient" style="width:18px; height:18px; accent-color:var(--water);">
         ognuno indipendente
       </label>
+    </div>
+    <div class="piscine-admin" id="piscineAdmin" style="display:none;">
+      <label>Piscine e corsie (valide per tutti gli utenti)</label>
+      <div id="piscineList"></div>
+      <div class="piscine-actions">
+        <button class="btn small ghost" id="btnAddPiscina">+ Aggiungi piscina</button>
+        <button class="btn small primary" id="btnSavePiscine">Salva piscine</button>
+      </div>
     </div>
   </div>
       </div>
@@ -526,6 +553,9 @@ footer.hint{
 
       <h3>Modificare orari e impostazioni</h3>
       <p>Serve passare in <b>🛡️ Amministratore</b> inserendo il PIN (solo chi lo conosce). Da lì puoi cambiare corsie/stacco tempi e correggere manualmente l'orario di una batteria: tutte quelle successive nella stessa parte si ricalcolano, anche se erano state modificate manualmente.</p>
+
+      <h3>Piscine e corsie</h3>
+      <p>Al caricamento del PDF l'app legge la piscina dalla riga "Concentramento" e, se la riconosce, usa il numero di corsie impostato per quella piscina. In <b>⚙️ Impostazioni</b> puoi scegliere un'altra piscina e premere <b>Applica e ricalcola</b>. L'Amministratore può aggiungere, modificare o eliminare le piscine (formato "Città - Piscina"): l'elenco vale per tutti gli utenti. Quando salva, le gare già caricate che usano una piscina con corsie diverse vengono ricalcolate automaticamente per tutti; le modifiche manuali agli orari di quelle gare vengono azzerate.</p>
 
       <h3>Atleti monitorati</h3>
       <p>Cerca un nome nella sezione <b>🎯 Atleti monitorati</b> e aggiungilo: vedrai tutte le sue gare con orario. Cliccando su una sua gara o sul pulsante "dettaglio" si apre il dettaglio della batteria; cliccando di nuovo si chiude. Aprendo un altro dettaglio, quello precedente si chiude automaticamente. La lista è personale, legata a questo browser.</p>
@@ -652,6 +682,91 @@ let sessionRef = null;
 const settingsGlobalRef = db.ref('settings_global');
 const sessionsRootRef = db.ref('sessions');
 
+/* ============================================================
+   PISCINE (elenco condiviso in settings_global/piscine,
+   modificabile solo dall'Amministratore)
+   ============================================================ */
+const PISCINE_DEFAULT = [
+  { nome:'Spilimbergo - La Favorita piscina comunale', corsie:8 },
+  { nome:'San Vito al Tagliamento - Piscina comunale', corsie:8 },
+  { nome:'Gorizia - Piscina comunale', corsie:8 },
+  { nome:'Maniago - Piscina comunale', corsie:8 },
+  { nome:'Trieste - Piscina Bruno Bianchi', corsie:10 }
+];
+let PISCINE = PISCINE_DEFAULT.slice();
+let PISCINE_MODIFICATE = false;
+const PAROLE_GENERICHE_PISCINA = new Set(['piscina','piscine','comunale','comunali','di','del','della','dello','la','il','lo','le','al','alla','e','centro','natatorio','nuoto','impianto']);
+
+function normalizzaElencoPiscine(val){
+  const arr = Array.isArray(val) ? val : (val && typeof val === 'object' ? Object.values(val) : null);
+  if(!arr) return null;
+  const out = arr.filter(p=>p && typeof p.nome === 'string' && p.nome.trim() && Number.isInteger(p.corsie) && p.corsie>=1 && p.corsie<=12)
+    .map(p=>({ nome:p.nome.trim(), corsie:p.corsie }));
+  return out.length ? out : null;
+}
+
+function normalizzaTesto(s){
+  return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+}
+
+function contieneParole(testo, frase){
+  return !!frase && (' '+testo+' ').includes(' '+frase+' ');
+}
+
+function separaNomePiscina(nome){
+  const m = /^(.*?)\s*-\s*(.*)$/.exec(nome);
+  return m ? { citta:m[1], impianto:m[2] } : { citta:nome, impianto:'' };
+}
+
+// cerca la piscina configurata che corrisponde alla riga "Concentramento" del PDF:
+// prima per città, poi per le parole distintive del nome dell'impianto
+function trovaPiscina(luogo){
+  if(!luogo) return null;
+  const testo = normalizzaTesto(luogo);
+  const perCitta = PISCINE.find(p=>contieneParole(testo, normalizzaTesto(separaNomePiscina(p.nome).citta)));
+  if(perCitta) return perCitta;
+  return PISCINE.find(p=>{
+    const parole = normalizzaTesto(separaNomePiscina(p.nome).impianto).split(' ')
+      .filter(w=>w && !PAROLE_GENERICHE_PISCINA.has(w));
+    return parole.length>0 && parole.every(w=>contieneParole(testo, w));
+  }) || null;
+}
+
+function renderSelectPiscina(){
+  const sel = document.getElementById('setPiscina');
+  const corrente = STATE.meta.piscina || '';
+  const etichettaVuota = STATE.meta.luogoPdf && !STATE.meta.piscina
+    ? `Dal PDF: ${STATE.meta.luogoPdf}` : '— nessuna (corsie manuali) —';
+  sel.innerHTML = `<option value="">${escapeHtml(etichettaVuota)}</option>` +
+    PISCINE.map((p,i)=>`<option value="${i}">${escapeHtml(p.nome)} (${p.corsie} corsie)</option>`).join('');
+  const idx = PISCINE.findIndex(p=>p.nome===corrente);
+  sel.value = idx>=0 ? String(idx) : '';
+}
+
+function renderPiscineAdmin(){
+  const list = document.getElementById('piscineList');
+  if(!list) return;
+  list.innerHTML = '';
+  PISCINE.forEach(p=>aggiungiRigaPiscina(p.nome, p.corsie));
+  PISCINE_MODIFICATE = false;
+  renderSelectPiscina();
+}
+
+function aggiungiRigaPiscina(nome, corsie){
+  const row = document.createElement('div');
+  row.className = 'piscina-row';
+  row.innerHTML = `<input type="text" class="nome" placeholder="Città - Piscina" aria-label="Nome piscina">
+    <input type="number" class="corsie" min="1" max="12" aria-label="Corsie">
+    <button class="btn small danger" type="button" title="Elimina piscina">×</button>`;
+  row.querySelector('.nome').value = nome || '';
+  row.dataset.orig = nome || ''; // per riconoscere le piscine rinominate al salvataggio
+  row.querySelector('.corsie').value = corsie || 8;
+  row.querySelector('button').addEventListener('click', ()=>{ row.remove(); PISCINE_MODIFICATE = true; });
+  row.addEventListener('input', ()=>{ PISCINE_MODIFICATE = true; });
+  document.getElementById('piscineList').appendChild(row);
+  return row;
+}
+
 function computeSessionRef(){
   return MULTI_CLIENT ? db.ref('sessions/' + CLIENT_ID) : db.ref('session');
 }
@@ -681,6 +796,8 @@ settingsGlobalRef.on('value', snap=>{
   const v = snap.val();
   const wasMulti = MULTI_CLIENT;
   MULTI_CLIENT = !!(v && v.multiClient);
+  PISCINE = normalizzaElencoPiscine(v && v.piscine) || PISCINE_DEFAULT.slice();
+  if(!PISCINE_MODIFICATE) renderPiscineAdmin();
   const cb = document.getElementById('setMultiClient');
   if(cb) cb.checked = MULTI_CLIENT;
   if(MULTI_CLIENT !== wasMulti || !sessionRef){
@@ -719,6 +836,7 @@ function updateLockUI(){
   btnFindOnFedernuoto.style.display = canEdit() ? 'inline-flex' : 'none';
   btnWipeMonitor.style.display = UNLOCKED ? 'inline-flex' : 'none';
   if(multiClientField) multiClientField.style.display = UNLOCKED ? 'flex' : 'none';
+  document.getElementById('piscineAdmin').style.display = UNLOCKED ? 'flex' : 'none';
   if(btnLog) btnLog.style.display = UNLOCKED ? 'inline-flex' : 'none';
   render();
 }
@@ -817,9 +935,13 @@ function parseRiga(l){
 }
 
 function parseEventPage(lines){
-  let specialita=null, parte=null, data=null, ora=null;
+  let specialita=null, parte=null, data=null, ora=null, luogo=null;
   for(let i=0;i<lines.length;i++){
-    if(lines[i].startsWith('Concentramento')) specialita = lines[i-1].trim();
+    if(lines[i].startsWith('Concentramento')){
+      specialita = lines[i-1].trim();
+      const m = /\(([^)]*)\)/.exec(lines[i]);
+      luogo = (m ? m[1] : lines[i]).trim() || null;
+    }
     const m = PARTE_RE.exec(lines[i]);
     if(m){ parte=parseInt(m[1],10); data=m[2]; ora=m[3]; break; }
   }
@@ -836,7 +958,7 @@ function parseEventPage(lines){
     const row = parseRiga(l);
     if(row) atleti.push(row);
   }
-  return { specialita, parte, data, oraInizio: ora, atleti };
+  return { specialita, parte, data, oraInizio: ora, luogo, atleti };
 }
 
 async function parsePdf(file){
@@ -986,7 +1108,6 @@ async function elaboraECaricaPdf(fileOrBlob, nomeFile, origine){
   const statusEl = document.getElementById('uploadStatus');
   statusEl.textContent = 'Estrazione in corso…';
   try{
-    const corsie = parseInt(document.getElementById('setCorsie').value,10) || 10;
     const staccoBatteria = parseFloat(document.getElementById('setStaccoBatteria').value) || 0;
     const staccoSpecialita = parseFloat(document.getElementById('setStaccoSpecialita').value) || 0;
 
@@ -995,17 +1116,22 @@ async function elaboraECaricaPdf(fileOrBlob, nomeFile, origine){
       statusEl.textContent = 'Nessun evento riconosciuto nel PDF.';
       return;
     }
+    const luogoPdf = (eventiRaw.find(ev=>ev.luogo) || {}).luogo || null;
+    const piscina = trovaPiscina(luogoPdf);
+    const corsie = piscina ? piscina.corsie : (parseInt(document.getElementById('setCorsie').value,10) || 10);
     const meeting = costruisciMeeting(eventiRaw, corsie);
     ricalcolaMeeting(meeting, staccoBatteria, staccoSpecialita);
 
     STATE.meta = {
       fileName: nomeFile,
       uploadedAt: new Date().toISOString(),
-      corsie, staccoBatteria, staccoSpecialita
+      corsie, staccoBatteria, staccoSpecialita,
+      piscina: piscina ? piscina.nome : null,
+      luogoPdf
     };
     STATE.meeting = meeting;
     STATE.lastEdit = {
-      tipo:'upload', dettaglio:`Caricato nuovo file "${nomeFile}" (${eventiRaw.length} specialità)${origine ? ' — '+origine : ''}`,
+      tipo:'upload', dettaglio:`Caricato nuovo file "${nomeFile}" (${eventiRaw.length} specialità) — ${piscina ? piscina.nome : (luogoPdf || 'piscina non rilevata')}, ${corsie} corsie${origine ? ' — '+origine : ''}`,
       timestamp:new Date().toISOString(), operatore:getOperatore()
     };
     await salvaSessione();
@@ -1275,6 +1401,10 @@ document.getElementById('btnApplySettings').addEventListener('click', async ()=>
   const corsie = parseInt(document.getElementById('setCorsie').value,10) || 10;
   const staccoBatteria = parseFloat(document.getElementById('setStaccoBatteria').value) || 0;
   const staccoSpecialita = parseFloat(document.getElementById('setStaccoSpecialita').value) || 0;
+  const idxPiscina = document.getElementById('setPiscina').value;
+  const piscinaSel = idxPiscina !== '' ? PISCINE[parseInt(idxPiscina,10)] : null;
+  STATE.meta.piscina = piscinaSel ? piscinaSel.nome : null;
+  if(STATE.meta.luogoPdf === undefined) STATE.meta.luogoPdf = null;
 
   if(!STATE.meeting.length){
     STATE.meta.corsie = corsie;
@@ -1290,16 +1420,7 @@ document.getElementById('btnApplySettings').addEventListener('click', async ()=>
   STATE.meta.staccoSpecialita = staccoSpecialita;
 
   if(corsieCambiate){
-    // il numero di corsie cambia il raggruppamento -> ricostruisco le batterie
-    // mantenendo la lista atleti già presente
-    STATE.meeting.forEach(parte=>{
-      parte.eventi.forEach(ev=>{
-        const atleti = ev.batterie.flatMap(b=>b.atleti)
-          .sort((a,b)=> (a.tempoSec??Infinity) - (b.tempoSec??Infinity));
-        const nuoveBatterie = raggruppaBatterie(atleti, corsie);
-        ev.batterie = nuoveBatterie.map((atl,i)=>({numero:i+1, totale:nuoveBatterie.length, orario:null, manuale:false, atleti:atl}));
-      });
-    });
+    ricostruisciBatterie(STATE.meeting, corsie);
   } else {
     // reset di tutte le ancore manuali per un ricalcolo pulito con i nuovi stacchi
     STATE.meeting.forEach(parte=>parte.eventi.forEach(ev=>ev.batterie.forEach(b=>b.manuale=false)));
@@ -1307,17 +1428,141 @@ document.getElementById('btnApplySettings').addEventListener('click', async ()=>
 
   const sforato = ricalcolaMeeting(STATE.meeting, staccoBatteria, staccoSpecialita);
   STATE.lastEdit = {
-    tipo:'settings', dettaglio:`Impostazioni aggiornate — corsie:${corsie}, stacco batteria:${staccoBatteria}min, stacco specialità:${staccoSpecialita}min`,
+    tipo:'settings', dettaglio:`Impostazioni aggiornate — ${STATE.meta.piscina ? 'piscina:'+STATE.meta.piscina+', ' : ''}corsie:${corsie}, stacco batteria:${staccoBatteria}min, stacco specialità:${staccoSpecialita}min`,
     timestamp:new Date().toISOString(), operatore:getOperatore()
   };
   await salvaSessione();
   document.getElementById('settingsPanel').classList.remove('open');
 });
 
+document.getElementById('setPiscina').addEventListener('change', e=>{
+  const p = e.target.value !== '' ? PISCINE[parseInt(e.target.value,10)] : null;
+  if(p) document.getElementById('setCorsie').value = p.corsie;
+});
+
+document.getElementById('btnAddPiscina').addEventListener('click', ()=>{
+  if(!UNLOCKED) return;
+  PISCINE_MODIFICATE = true;
+  aggiungiRigaPiscina('', 8).querySelector('.nome').focus();
+});
+
+document.getElementById('btnSavePiscine').addEventListener('click', async ()=>{
+  if(!UNLOCKED){ alert('Solo l\'Amministratore può modificare le piscine.'); return; }
+  const nuove = [];
+  const rinomine = new Map(); // nome precedente -> nome nuovo
+  const visti = new Set();
+  for(const row of document.querySelectorAll('#piscineList .piscina-row')){
+    const nome = row.querySelector('.nome').value.trim();
+    const corsie = parseInt(row.querySelector('.corsie').value,10);
+    if(!nome && !row.querySelector('.corsie').value) continue;
+    if(!nome){ alert('Inserisci il nome di ogni piscina (formato "Città - Piscina").'); return; }
+    if(!Number.isInteger(corsie) || corsie<1 || corsie>12){ alert(`Numero di corsie non valido per "${nome}" (da 1 a 12).`); return; }
+    const chiave = normalizzaTesto(nome);
+    if(visti.has(chiave)){ alert(`La piscina "${nome}" è presente più volte.`); return; }
+    visti.add(chiave);
+    nuove.push({ nome, corsie });
+    if(row.dataset.orig) rinomine.set(row.dataset.orig, nome);
+  }
+  if(!nuove.length){ alert('Inserisci almeno una piscina.'); return; }
+  try{
+    await settingsGlobalRef.update({ piscine: nuove, _pin: OPERATOR_PIN });
+  }catch(err){
+    console.error(err);
+    alert('Salvataggio piscine non riuscito: '+err.message);
+    return;
+  }
+  PISCINE_MODIFICATE = false;
+  PISCINE = nuove;
+  renderPiscineAdmin();
+  await pushAuditLog({
+    tipo:'piscine',
+    dettaglio:'Elenco piscine aggiornato: '+nuove.map(p=>`${p.nome} (${p.corsie})`).join('; '),
+    timestamp:new Date().toISOString(), operatore:getOperatore()
+  });
+  try{
+    const n = await propagaPiscineAlleSessioni(nuove, rinomine);
+    document.getElementById('uploadStatus').textContent = n
+      ? `Piscine salvate. Gare ricalcolate: ${n}.`
+      : 'Piscine salvate.';
+  }catch(err){
+    console.error(err);
+    alert('Piscine salvate, ma l\'aggiornamento delle gare già caricate non è riuscito: '+err.message);
+  }
+});
+
+// Applica l'elenco piscine aggiornato a tutte le gare già caricate (sessione
+// condivisa e sessioni personali): aggiorna il nome della piscina se rinominata
+// e, se le corsie sono cambiate, ricostruisce le batterie e ricalcola gli orari.
+async function propagaPiscineAlleSessioni(nuove, rinomine){
+  const perNome = new Map(nuove.map(p=>[p.nome, p]));
+  const aggiorna = (val)=>{
+    if(!val || !val.meta || !val.meta.piscina || !Array.isArray(val.meeting) || !val.meeting.length) return null;
+    const nomeNuovo = rinomine.get(val.meta.piscina) || val.meta.piscina;
+    const piscina = perNome.get(nomeNuovo);
+    if(!piscina) return null; // piscina eliminata: la gara mantiene le corsie attuali
+    const corsieCambiate = piscina.corsie !== val.meta.corsie;
+    if(!corsieCambiate && nomeNuovo === val.meta.piscina) return null;
+    const meta = { ...val.meta, piscina: piscina.nome, corsie: piscina.corsie };
+    const meeting = val.meeting;
+    if(corsieCambiate){
+      normalizzaMeeting(meeting);
+      ricostruisciBatterie(meeting, piscina.corsie);
+      ricalcolaMeeting(meeting, meta.staccoBatteria ?? 2, meta.staccoSpecialita ?? 1);
+    }
+    const lastEdit = {
+      tipo:'piscine',
+      dettaglio: corsieCambiate
+        ? `Corsie della piscina "${piscina.nome}" aggiornate a ${piscina.corsie}: batterie e orari ricalcolati`
+        : `Piscina rinominata in "${piscina.nome}"`,
+      timestamp:new Date().toISOString(), operatore:getOperatore()
+    };
+    return { ...val, meta, meeting, lastEdit };
+  };
+
+  let aggiornate = 0;
+  const condivisa = aggiorna((await db.ref('session').once('value')).val());
+  if(condivisa){
+    await db.ref('session').set({ ...condivisa, _pin: OPERATOR_PIN });
+    aggiornate++;
+  }
+  const personali = (await sessionsRootRef.once('value')).val() || {};
+  for(const [clientId, val] of Object.entries(personali)){
+    const nuova = aggiorna(val);
+    if(!nuova) continue;
+    await db.ref('sessions/'+clientId).set(nuova);
+    aggiornate++;
+  }
+  return aggiornate;
+}
+
+// Firebase restituisce gli array vuoti come assenti: li ripristino prima di ricalcolare
+function normalizzaMeeting(meeting){
+  meeting.forEach(parte=>{
+    parte.eventi = parte.eventi || [];
+    parte.eventi.forEach(ev=>{
+      ev.batterie = ev.batterie || [];
+      ev.batterie.forEach(b=>{ b.atleti = b.atleti || []; });
+    });
+  });
+}
+
+// il numero di corsie cambia il raggruppamento -> ricostruisco le batterie
+// mantenendo la lista atleti già presente
+function ricostruisciBatterie(meeting, corsie){
+  meeting.forEach(parte=>{
+    parte.eventi.forEach(ev=>{
+      const atleti = ev.batterie.flatMap(b=>b.atleti)
+        .sort((a,b)=> (a.tempoSec??Infinity) - (b.tempoSec??Infinity));
+      const nuoveBatterie = raggruppaBatterie(atleti, corsie);
+      ev.batterie = nuoveBatterie.map((atl,i)=>({numero:i+1, totale:nuoveBatterie.length, orario:null, manuale:false, atleti:atl}));
+    });
+  });
+}
+
 document.getElementById('setMultiClient').addEventListener('change', async (e)=>{
   if(!UNLOCKED) { e.target.checked = MULTI_CLIENT; return; }
   const enable = e.target.checked;
-  await settingsGlobalRef.set({ multiClient: enable, _pin: OPERATOR_PIN });
+  await settingsGlobalRef.update({ multiClient: enable, _pin: OPERATOR_PIN });
   await pushAuditLog({
     tipo:'multiclient',
     dettaglio: enable ? 'Modalità multi-utente ATTIVATA (ogni utente indipendente)' : 'Modalità multi-utente DISATTIVATA (torna condivisa)',
@@ -1486,6 +1731,7 @@ function syncSettingsFields(){
   document.getElementById('setCorsie').value = STATE.meta.corsie ?? 10;
   document.getElementById('setStaccoBatteria').value = STATE.meta.staccoBatteria ?? 2;
   document.getElementById('setStaccoSpecialita').value = STATE.meta.staccoSpecialita ?? 1;
+  renderSelectPiscina();
 }
 
 /* ============================================================
@@ -1676,6 +1922,8 @@ function render(){
   const currentKey = currentRaceKey(now);
 
   let html = '';
+  const luogo = STATE.meta.piscina || STATE.meta.luogoPdf;
+  if(luogo) html += `<div class="luogo-gara">📍 ${escapeHtml(luogo)} · ${STATE.meta.corsie} corsie</div>`;
   STATE.meeting.forEach((parte,pIdx)=>{
     const fine = parte.eventi.length ? parte.eventi[parte.eventi.length-1].batterie.slice(-1)[0] : null;
     html += `<section class="block">
