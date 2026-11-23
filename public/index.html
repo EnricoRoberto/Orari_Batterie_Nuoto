@@ -164,12 +164,13 @@ body{
 }
 
 header.app{
-  position:relative; z-index:1;
+  position:relative; z-index:30;
   padding:28px clamp(16px,4vw,48px) 18px;
   border-bottom:1px solid var(--line);
   background:linear-gradient(180deg, rgba(11,36,54,.035), transparent);
 }
-.brand{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; justify-content:space-between;}
+.brand{display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+.brand-title{margin-right:auto;}
 .brand-title{display:flex; align-items:center; gap:14px;}
 .header-logo{height:44px; width:auto; display:block;}
 .brand h1{
@@ -182,8 +183,22 @@ header.app{
 .brand .sub{color:var(--text-dim); font-size:13px; margin-top:4px;}
 
 .toolbar{
-  display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:16px;
+  display:flex; gap:8px; flex-direction:column; align-items:stretch;
 }
+.toolbar .btn{justify-content:flex-start; text-align:left;}
+.app-menu{position:static;}
+.app-menu summary{list-style:none;}
+.app-menu summary::-webkit-details-marker{display:none;}
+.app-menu:not([open]) .app-menu-panel{display:none;}
+.app-menu-panel{
+  position:absolute; right:clamp(16px,4vw,48px); top:calc(100% + 8px); z-index:1;
+  width:min(440px, calc(100vw - 32px)); max-height:calc(100vh - 110px);
+  overflow:auto; box-sizing:border-box; padding:14px;
+  border:1px solid var(--line); border-radius:12px;
+  background:var(--navy-panel); box-shadow:0 8px 24px rgba(18,34,44,.2);
+}
+.app-menu-panel .settings-panel{margin-top:10px;}
+.upload-status:not(:empty){display:block; margin-top:10px; font-size:12.5px; color:var(--text-dim);}
 .btn{
   border:1px solid var(--line);
   background:var(--navy-panel);
@@ -208,6 +223,7 @@ input[type=file]{display:none;}
 
 .file-badge{
   display:inline-flex; align-items:center; gap:10px;
+  max-width:100%; min-width:0; overflow-wrap:anywhere; box-sizing:border-box;
   font-size:13.5px; font-weight:700;
   padding:10px 16px; border-radius:10px;
   border:1.5px solid transparent;
@@ -443,9 +459,10 @@ footer.hint{
       </div>
     </div>
     <div class="file-badge" id="fileBadge"><span class="icon" id="fileBadgeIcon">⚠️</span><span id="fileBadgeText">Nessun file caricato</span></div>
-  </div>
-
-  <div class="toolbar">
+    <details class="app-menu" id="appMenu">
+      <summary class="btn" aria-label="Apri o chiudi il menu">☰ Menu</summary>
+      <div class="app-menu-panel">
+        <div class="toolbar">
     <button class="btn primary" id="labelUpload">📄 Carica starting list (PDF)</button>
     <input type="file" id="pdfInput" accept="application/pdf">
     <button class="btn ghost" id="btnFindOnFedernuoto" style="display:none;">🔗 Trova su Federnuoto FVG</button>
@@ -454,8 +471,7 @@ footer.hint{
     <button class="btn ghost" id="btnHelp">❓ Guida</button>
     <button class="btn ghost" id="btnLock">👤 Modalità Utente</button>
     <button class="btn ghost" id="btnLog" style="display:none;">📋 Log modifiche</button>
-    <span id="uploadStatus" style="font-size:12.5px;color:var(--text-dim);"></span>
-  </div>
+        </div>
 
   <div class="settings-panel" id="settingsPanel">
     <div class="field">
@@ -485,6 +501,10 @@ footer.hint{
       </label>
     </div>
   </div>
+      </div>
+    </details>
+  </div>
+  <span id="uploadStatus" class="upload-status" role="status"></span>
 </header>
 
 <div class="banner warn" id="bannerSforamento">⚠️ <span>Durata gare oltre il giorno corrente: alcuni orari sono stati limitati alle 23:59.</span></div>
@@ -499,7 +519,7 @@ footer.hint{
     </div>
     <div class="modal-body">
       <h3>Caricare la gara</h3>
-      <p>Clicca <b>📄 Carica starting list (PDF)</b>, scegli la categoria (Esordienti, Assoluti, Propaganda) e seleziona una delle gare pubblicate su Federnuoto FVG da oggi in avanti: il "Programma gare" viene scaricato ed elaborato automaticamente. L'app calcola da sola batterie e orari previsti.</p>
+      <p>Apri <b>☰ Menu</b> e clicca <b>📄 Carica starting list (PDF)</b>, scegli la categoria (Esordienti, Assoluti, Propaganda) e seleziona una delle gare pubblicate su Federnuoto FVG da oggi in avanti: il "Programma gare" viene scaricato ed elaborato automaticamente. L'app calcola da sola batterie e orari previsti.</p>
       <p>Se il download automatico non riesce, il PDF si apre in una nuova scheda: salvalo e usa <b>📁 Carica PDF dal computer</b>.</p>
       <p>Il pulsante <b>🔗 Trova su Federnuoto FVG</b> apre la pagina dei comunicati del comitato regionale in una nuova scheda, per cercare e scaricare la gara.</p>
 
@@ -1197,6 +1217,20 @@ document.getElementById('fedModal').addEventListener('click', (e)=>{
 /* ============================================================
    IMPOSTAZIONI
    ============================================================ */
+const appMenu = document.getElementById('appMenu');
+document.addEventListener('click', e=>{
+  if(!appMenu.contains(e.target)) appMenu.open = false;
+});
+appMenu.querySelector('.toolbar').addEventListener('click', e=>{
+  const btn = e.target.closest('button');
+  if(btn && btn.id !== 'btnSettings' && btn.id !== 'btnLock') appMenu.open = false;
+});
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape' && appMenu.open){
+    appMenu.open = false;
+    appMenu.querySelector('summary').focus();
+  }
+});
 document.getElementById('btnSettings').addEventListener('click', ()=>{
   document.getElementById('settingsPanel').classList.toggle('open');
 });
@@ -1577,8 +1611,7 @@ function render(){
   if(STATE.meta.fileName){
     fb.classList.add('loaded');
     fbi.textContent = '✅';
-    const d = new Date(STATE.meta.uploadedAt);
-    fbt.textContent = `${STATE.meta.fileName} · caricato ${fmtHM(d)} il ${d.toLocaleDateString('it-IT')}`;
+    fbt.textContent = STATE.meta.fileName;
   } else {
     fb.classList.remove('loaded');
     fbi.textContent = '⚠️';
