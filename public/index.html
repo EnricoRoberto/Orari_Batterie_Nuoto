@@ -110,6 +110,25 @@ html,body{margin:0;padding:0;}
 .modal-body h3:first-child{margin-top:0;}
 .modal-body p{margin:0 0 4px; line-height:1.5; color:var(--text-dim);}
 
+.fed-controls{display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:12px 20px 0;}
+.fed-controls select{
+  padding:7px 10px; border-radius:8px; border:1px solid var(--line);
+  background:var(--navy-panel); color:var(--text); font-family:var(--sans); font-size:13.5px; font-weight:600;
+}
+.fed-status{font-size:12.5px; color:var(--text-dim); margin-bottom:8px;}
+.fed-status.error{color:var(--danger);}
+.fed-item{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:10px 0; border-bottom:1px solid var(--line);
+}
+.fed-item:last-child{border-bottom:none;}
+.fed-item-title{font-weight:700; color:var(--text);}
+.fed-item-meta{font-size:12px; color:var(--text-faint); margin-top:3px;}
+.fed-tag{
+  display:inline-block; font-size:10.5px; font-weight:700; text-transform:uppercase;
+  padding:1px 7px; border-radius:5px; background:var(--navy-panel-2); color:var(--water-bright); margin-left:6px;
+}
+
 .log-entry{padding:10px 0; border-bottom:1px solid var(--line);}
 .log-entry:last-child{border-bottom:none;}
 .log-entry-head{display:flex; justify-content:space-between; align-items:baseline; gap:10px;}
@@ -427,7 +446,7 @@ footer.hint{
   </div>
 
   <div class="toolbar">
-    <label class="btn primary" for="pdfInput" id="labelUpload">📄 Carica starting list (PDF)</label>
+    <button class="btn primary" id="labelUpload">📄 Carica starting list (PDF)</button>
     <input type="file" id="pdfInput" accept="application/pdf">
     <button class="btn ghost" id="btnFindOnFedernuoto" style="display:none;">🔗 Trova su Federnuoto FVG</button>
     <button class="btn ghost" id="btnSettings">⚙️ Impostazioni</button>
@@ -480,20 +499,44 @@ footer.hint{
     </div>
     <div class="modal-body">
       <h3>Caricare la gara</h3>
-      <p>Clicca <b>📄 Carica starting list (PDF)</b> e seleziona il PDF ufficiale con gli iscritti. L'app calcola da sola batterie e orari previsti.</p>
+      <p>Clicca <b>📄 Carica starting list (PDF)</b>, scegli la categoria (Esordienti, Assoluti, Propaganda) e seleziona una delle gare pubblicate su Federnuoto FVG da oggi in avanti: il "Programma gare" viene scaricato ed elaborato automaticamente. L'app calcola da sola batterie e orari previsti.</p>
+      <p>Se il download automatico non riesce, il PDF si apre in una nuova scheda: salvalo e usa <b>📁 Carica PDF dal computer</b>.</p>
       <p>Il pulsante <b>🔗 Trova su Federnuoto FVG</b> apre la pagina dei comunicati del comitato regionale in una nuova scheda, per cercare e scaricare la gara.</p>
 
       <h3>Modificare orari e impostazioni</h3>
-      <p>Serve passare in <b>🛡️ Amministratore</b> inserendo il PIN (solo chi lo conosce). Da lì puoi cambiare corsie/stacco tempi e correggere manualmente l'orario di una batteria: tutte quelle successive si ricalcolano da sole.</p>
+      <p>Serve passare in <b>🛡️ Amministratore</b> inserendo il PIN (solo chi lo conosce). Da lì puoi cambiare corsie/stacco tempi e correggere manualmente l'orario di una batteria: tutte quelle successive nella stessa parte si ricalcolano, anche se erano state modificate manualmente.</p>
 
       <h3>Atleti monitorati</h3>
-      <p>Cerca un nome nella sezione <b>🎯 Atleti monitorati</b> e aggiungilo: vedrai tutte le sue gare con orario. Cliccando su una sua gara o sul pulsante "dettaglio" si apre il dettaglio della batteria, che rimane aperto fino all'apertura di un altro dettaglio. La lista è personale, legata a questo browser.</p>
+      <p>Cerca un nome nella sezione <b>🎯 Atleti monitorati</b> e aggiungilo: vedrai tutte le sue gare con orario. Cliccando su una sua gara o sul pulsante "dettaglio" si apre il dettaglio della batteria; cliccando di nuovo si chiude. Aprendo un altro dettaglio, quello precedente si chiude automaticamente. La lista è personale, legata a questo browser.</p>
 
       <h3>Stampa</h3>
       <p>Il pulsante <b>🖨️ Stampa / PDF</b> genera una versione pulita da stampare o salvare in PDF.</p>
 
       <h3>Le gare passate</h3>
-      <p>Le batterie con orario già trascorso appaiono in grigio, ma il loro orario resta modificabile (in modalità Amministratore): le batterie successive vengono ricalcolate.</p>
+      <p>Le batterie con orario già trascorso appaiono in grigio, ma il loro orario resta modificabile (in modalità Amministratore): le batterie successive della stessa parte vengono ricalcolate.</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="fedModal">
+  <div class="modal-panel">
+    <div class="modal-head">
+      <h2>📄 Carica starting list</h2>
+      <button class="modal-close" id="fedModalClose">×</button>
+    </div>
+    <div class="fed-controls">
+      <label for="fedCategoria" style="font-size:13px; font-weight:600;">Categoria</label>
+      <select id="fedCategoria">
+        <option value="">— scegli —</option>
+        <option value="eso">Esordienti</option>
+        <option value="ass">Assoluti</option>
+        <option value="propaganda">Propaganda</option>
+      </select>
+      <button class="btn small ghost" id="btnFedManual">📁 Carica PDF dal computer</button>
+    </div>
+    <div class="modal-body">
+      <div class="fed-status" id="fedStatus">Scegli una categoria per vedere i programmi gara disponibili da oggi in avanti.</div>
+      <div id="fedList"></div>
     </div>
   </div>
 </div>
@@ -966,6 +1009,192 @@ document.getElementById('btnFindOnFedernuoto').addEventListener('click', ()=>{
 });
 
 /* ============================================================
+   SCELTA STARTING LIST DA FEDERNUOTO FVG
+   L'elenco arriva dalle API WordPress del sito (CORS consentito);
+   il PDF non ha CORS, quindi si passa da proxy pubblici.
+   Se tutti falliscono resta il caricamento manuale.
+   ============================================================ */
+const FED_SITE = 'https://federnuotofriuliveneziagiulia.it';
+const FED_PROXIES = [
+  u => 'https://corsproxy.io/?url=' + encodeURIComponent(u),
+  u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+  u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u)
+];
+const FED_WP_CAT = { 9:'Nuoto', 11:'Salvamento', 15:'Master', 16:'Propaganda' };
+let FED_POSTS = null;
+
+function fedSetStatus(msg, isError){
+  const el = document.getElementById('fedStatus');
+  el.innerHTML = msg;
+  el.classList.toggle('error', !!isError);
+}
+
+// data finale della gara dallo slug, es. "...-21-11-2026" o "...-21-22-11-2026"
+function fedDataDaSlug(slug){
+  const m = slug.match(/(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if(!m) return null;
+  const giorno = parseInt(m[1],10);
+  const mese = parseInt(m[2],10);
+  const anno = parseInt(m[3],10);
+  const d = new Date(anno, mese-1, giorno);
+  if(d.getFullYear()!==anno || d.getMonth()!==mese-1 || d.getDate()!==giorno) return null;
+  return d;
+}
+
+function fedCategorie(post, testo){
+  const cats = [];
+  if(/\beso(rdienti)?\b/.test(testo)) cats.push('eso');
+  if(/\bass(olut[io])?\b/.test(testo)) cats.push('ass');
+  if(/\bpropaganda\b/.test(testo) || (post.categories||[]).includes(16)) cats.push('propaganda');
+  return cats;
+}
+
+async function fedCaricaElenco(){
+  if(FED_POSTS) return FED_POSTS;
+  const postPerId = new Map();
+  for(const categoryId of [9,11,16]){
+    let page = 1;
+    while(true){
+      const url = `${FED_SITE}/wp-json/wp/v2/posts?categories=${categoryId}&per_page=100&page=${page}&_fields=id,slug,link,title,categories`;
+      const res = await fetch(url);
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const posts = await res.json();
+      if(!Array.isArray(posts)) throw new Error('Risposta non valida dal sito Federnuoto FVG.');
+      posts.forEach(post=>postPerId.set(post.id,post));
+      const totalPages = parseInt(res.headers.get('X-WP-TotalPages'),10);
+      if(totalPages ? page>=totalPages : posts.length<100) break;
+      page++;
+    }
+  }
+
+  const oggi = new Date(); oggi.setHours(0,0,0,0);
+  const parser = new DOMParser();
+  const out = [];
+  const futurePosts = Array.from(postPerId.values()).map(p=>({
+    post:p,
+    data:fedDataDaSlug(p.slug)
+  })).filter(item=>item.data && item.data>=oggi);
+
+  const postsWithContent = await Promise.all(futurePosts.map(async item=>{
+    const res = await fetch(`${FED_SITE}/wp-json/wp/v2/posts/${item.post.id}?_fields=content`);
+    if(!res.ok) throw new Error('HTTP '+res.status+' leggendo il programma gara.');
+    const post = await res.json();
+    if(!post.content || typeof post.content.rendered!=='string') throw new Error('Contenuto non valido per la gara.');
+    return {...item, contenuto:post.content.rendered};
+  }));
+
+  postsWithContent.forEach(({post:p,data,contenuto})=>{
+    const titolo = parser.parseFromString(p.title.rendered, 'text/html').body.textContent.trim();
+    const doc = parser.parseFromString(contenuto, 'text/html');
+    const pdfs = Array.from(doc.querySelectorAll('a[href]')).filter(a=>{
+      const href = a.getAttribute('href').split('?')[0].toLowerCase();
+      return href.endsWith('.pdf') && /programma/i.test(a.textContent);
+    }).map(a=>({ url:new URL(a.getAttribute('href'), FED_SITE).href, testo:a.textContent.trim() }));
+    if(!pdfs.length) return;
+    const testo = (p.slug.replace(/-/g,' ')+' '+titolo).toLowerCase();
+    const catPost = fedCategorie(p, testo);
+    const specialita = (p.categories||[]).map(c=>FED_WP_CAT[c]).filter(c=>c && c!=='Propaganda');
+    pdfs.forEach(pdf=>{
+      // es. salvamento: un PDF per categoria (salvamento-ESO-A.pdf, salvamento-ASSOLUTI.pdf)
+      const testoPdf = (decodeURIComponent(pdf.url.split('/').pop())+' '+pdf.testo).replace(/[-_.]/g,' ').toLowerCase();
+      const catPdf = fedCategorie({}, testoPdf);
+      out.push({ titolo, data, link:p.link, pdf, categorie:catPdf.length ? catPdf : catPost, specialita });
+    });
+  });
+  out.sort((a,b)=>a.data-b.data);
+  FED_POSTS = out;
+  return out;
+}
+
+async function fedRenderLista(){
+  const cat = document.getElementById('fedCategoria').value;
+  const list = document.getElementById('fedList');
+  list.innerHTML = '';
+  if(!cat){
+    fedSetStatus('Scegli una categoria per vedere i programmi gara disponibili da oggi in avanti.');
+    return;
+  }
+  fedSetStatus('Ricerca gare in corso…');
+  let elenco;
+  try{
+    elenco = (await fedCaricaElenco()).filter(g=>g.categorie.includes(cat));
+  }catch(err){
+    console.error(err);
+    fedSetStatus('Impossibile leggere l\'elenco gare da Federnuoto FVG. Usa "📁 Carica PDF dal computer".', true);
+    return;
+  }
+  if(!elenco.length){
+    fedSetStatus('Nessun programma gare disponibile da oggi in avanti per questa categoria.');
+    return;
+  }
+  fedSetStatus(`${elenco.length} programm${elenco.length===1?'a':'i'} gara disponibil${elenco.length===1?'e':'i'}. Clicca "Carica" per elaborarlo.`);
+  list.innerHTML = elenco.map((g,i)=>`<div class="fed-item">
+      <div>
+        <div class="fed-item-title">${escapeHtml(g.titolo)}${g.specialita.map(s=>`<span class="fed-tag">${escapeHtml(s)}</span>`).join('')}</div>
+        <div class="fed-item-meta">${g.data.toLocaleDateString('it-IT')} · ${escapeHtml(g.pdf.testo)} · ${escapeHtml(decodeURIComponent(g.pdf.url.split('/').pop()))}</div>
+      </div>
+      <button class="btn small primary" data-idx="${i}">Carica</button>
+    </div>`).join('');
+  list.querySelectorAll('button[data-idx]').forEach(btn=>{
+    btn.addEventListener('click', ()=>fedCaricaGara(elenco[parseInt(btn.dataset.idx,10)]));
+  });
+}
+
+async function fedScaricaPdf(url){
+  const tentativi = [url, ...FED_PROXIES.map(p=>p(url))];
+  for(const t of tentativi){
+    const ctrl = new AbortController();
+    const timer = setTimeout(()=>ctrl.abort(), 20000);
+    try{
+      const res = await fetch(t, { signal:ctrl.signal });
+      if(!res.ok) continue;
+      const blob = await res.blob();
+      const head = new Uint8Array(await blob.slice(0,5).arrayBuffer());
+      if(String.fromCharCode(...head) === '%PDF-') return blob;
+    }catch(err){
+      console.warn('Download PDF fallito via', t, err);
+    }finally{
+      clearTimeout(timer);
+    }
+  }
+  return null;
+}
+
+async function fedCaricaGara(g){
+  if(!canEdit()){ alert('Passa in modalità Amministratore per caricare un file.'); return; }
+  const list = document.getElementById('fedList');
+  list.querySelectorAll('button').forEach(b=>b.disabled = true);
+  fedSetStatus(`Download di "${escapeHtml(g.titolo)}" in corso…`);
+  const blob = await fedScaricaPdf(g.pdf.url);
+  list.querySelectorAll('button').forEach(b=>b.disabled = false);
+  if(!blob){
+    fedSetStatus(`Download automatico non riuscito. Il PDF è stato aperto in una nuova scheda: salvalo e usa "📁 Carica PDF dal computer". <a href="${escapeHtml(g.pdf.url)}" target="_blank" rel="noopener">Apri di nuovo il PDF</a>`, true);
+    window.open(g.pdf.url, '_blank', 'noopener');
+    return;
+  }
+  document.getElementById('fedModal').classList.remove('show');
+  const nomeFile = decodeURIComponent(g.pdf.url.split('/').pop());
+  try{ await elaboraECaricaPdf(blob, nomeFile, 'Federnuoto FVG: '+g.titolo); }catch(err){ /* messaggio già mostrato in statusEl */ }
+}
+
+document.getElementById('labelUpload').addEventListener('click', ()=>{
+  if(!canEdit()){ alert('Passa in modalità Amministratore per caricare un file.'); return; }
+  document.getElementById('fedModal').classList.add('show');
+  fedRenderLista();
+});
+document.getElementById('fedCategoria').addEventListener('change', fedRenderLista);
+document.getElementById('btnFedManual').addEventListener('click', ()=>{
+  document.getElementById('fedModal').classList.remove('show');
+  document.getElementById('pdfInput').click();
+});
+document.getElementById('fedModalClose').addEventListener('click', ()=>{
+  document.getElementById('fedModal').classList.remove('show');
+});
+document.getElementById('fedModal').addEventListener('click', (e)=>{
+  if(e.target.id === 'fedModal') document.getElementById('fedModal').classList.remove('show');
+});
+
+/* ============================================================
    IMPOSTAZIONI
    ============================================================ */
 document.getElementById('btnSettings').addEventListener('click', ()=>{
@@ -1128,6 +1357,7 @@ async function salvaSessione(){
 const monitoratiRootRef = db.ref('monitorati');
 const maintenanceRef = db.ref('maintenance_monitorati');
 let lastMaintenanceTs = null;
+let maintenanceInitialized = false;
 
 function showMaintenanceToast(){
   document.getElementById('maintenanceToast').classList.add('show');
@@ -1140,6 +1370,11 @@ function hideMaintenanceToast(){
 
 maintenanceRef.on('value', snap=>{
   const v = snap.val();
+  if(!maintenanceInitialized){
+    lastMaintenanceTs = v && v.ts;
+    maintenanceInitialized = true;
+    return;
+  }
   if(v && v.ts && v.ts !== lastMaintenanceTs){
     lastMaintenanceTs = v.ts;
     showMaintenanceToast();
@@ -1174,7 +1409,6 @@ document.getElementById('btnWipeMonitor').addEventListener('click', async ()=>{
 monitoratiRef.on('value', snap=>{
   const val = snap.val();
   STATE.monitorati = val ? Object.keys(val).filter(k=>val[k]) : [];
-  if(STATE.monitorati.length === 0) hideMaintenanceToast();
   renderMonitor();
 });
 
@@ -1198,6 +1432,11 @@ async function onOrarioEdit(parteIdx, eventoIdx, battIdx, nuovoValoreHM){
   b.orario = d.toISOString();
   b.manuale = true;
 
+  parte.eventi.forEach((ev, eIdx)=>{
+    ev.batterie.forEach((batteria, bIdx)=>{
+      if(eIdx > eventoIdx || (eIdx === eventoIdx && bIdx > battIdx)) batteria.manuale = false;
+    });
+  });
   const sforato = ricalcolaParte(parte, STATE.meta.staccoBatteria, STATE.meta.staccoSpecialita);
   document.getElementById('bannerSforamento').classList.toggle('show', sforato);
 
@@ -1423,7 +1662,11 @@ function render(){
 function toggleDetail(id){
   const el = document.getElementById(id);
   if(!el) return;
-  if(OPEN_DETAIL_ID === id) return;
+  if(OPEN_DETAIL_ID === id){
+    el.style.display = 'none';
+    OPEN_DETAIL_ID = null;
+    return;
+  }
   if(OPEN_DETAIL_ID){                   // ne apro un altro: chiudo il precedente
     const prev = document.getElementById(OPEN_DETAIL_ID);
     if(prev) prev.style.display = 'none';
