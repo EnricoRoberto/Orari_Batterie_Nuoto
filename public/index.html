@@ -912,6 +912,7 @@ let STATE = {
   monitorati: [],    // array di nomi
   lastEdit: null
 };
+let OPEN_DETAIL_ID = null; // id della riga dettaglio batteria aperta (sopravvive ai re-render)
 let SUPPRESS_REMOTE = false; // evita rimbalzi durante scrittura locale
 
 /* ============================================================
@@ -1379,7 +1380,7 @@ function render(){
           <td class="n-atleti">${b.atleti.length} corsie</td>
           <td><button class="expand-btn" onclick="toggleDetail('${detailId}')">dettaglio</button></td>
         </tr>
-        <tr class="atleti-detail" id="${detailId}" style="display:none;"><td colspan="4">
+        <tr class="atleti-detail" id="${detailId}" style="display:${detailId===OPEN_DETAIL_ID?'table-row':'none'};"><td colspan="4">
           <table class="atleti-detail-table">
             <thead><tr><th class="num">#</th><th>Atleta</th><th>Società</th><th class="t">Tempo</th></tr></thead>
             <tbody>
@@ -1398,12 +1399,24 @@ function render(){
     html += `</section>`;
   });
   content.innerHTML = html;
+  if(OPEN_DETAIL_ID && !document.getElementById(OPEN_DETAIL_ID)) OPEN_DETAIL_ID = null;
   renderMonitor();
 }
 
 function toggleDetail(id){
   const el = document.getElementById(id);
-  el.style.display = el.style.display==='none' ? 'table-row' : 'none';
+  if(!el) return;
+  if(OPEN_DETAIL_ID === id){            // era aperto: lo chiudo
+    el.style.display = 'none';
+    OPEN_DETAIL_ID = null;
+    return;
+  }
+  if(OPEN_DETAIL_ID){                   // ne apro un altro: chiudo il precedente
+    const prev = document.getElementById(OPEN_DETAIL_ID);
+    if(prev) prev.style.display = 'none';
+  }
+  el.style.display = 'table-row';
+  OPEN_DETAIL_ID = id;
 }
 
 function escapeHtml(s){
@@ -1462,7 +1475,11 @@ function renderMonitor(){
 }
 
 /* refresh periodico per aggiornare "batteria attuale" e stato passato/futuro */
-setInterval(render, 30000);
+setInterval(()=>{
+  const a = document.activeElement;
+  if(a && a.classList && a.classList.contains('orario-input')) return; // sto editando un orario: non ricostruire
+  render();
+}, 30000);
 
 /* init */
 updateLockUI();
