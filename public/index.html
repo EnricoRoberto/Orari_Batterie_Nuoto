@@ -487,13 +487,13 @@ footer.hint{
       <p>Serve passare in <b>🛡️ Amministratore</b> inserendo il PIN (solo chi lo conosce). Da lì puoi cambiare corsie/stacco tempi e correggere manualmente l'orario di una batteria: tutte quelle successive si ricalcolano da sole.</p>
 
       <h3>Atleti monitorati</h3>
-      <p>Cerca un nome nella sezione <b>🎯 Atleti monitorati</b> e aggiungilo: vedrai tutte le sue gare con orario. Cliccando su una sua gara si apre il dettaglio della batteria (stessa apertura/chiusura del pulsante "dettaglio"). La lista è personale, legata a questo browser.</p>
+      <p>Cerca un nome nella sezione <b>🎯 Atleti monitorati</b> e aggiungilo: vedrai tutte le sue gare con orario. Cliccando su una sua gara o sul pulsante "dettaglio" si apre il dettaglio della batteria, che rimane aperto fino all'apertura di un altro dettaglio. La lista è personale, legata a questo browser.</p>
 
       <h3>Stampa</h3>
       <p>Il pulsante <b>🖨️ Stampa / PDF</b> genera una versione pulita da stampare o salvare in PDF.</p>
 
       <h3>Le gare passate</h3>
-      <p>Le batterie con orario già trascorso appaiono in grigio e non sono più modificabili.</p>
+      <p>Le batterie con orario già trascorso appaiono in grigio, ma il loro orario resta modificabile (in modalità Amministratore): le batterie successive vengono ricalcolate.</p>
     </div>
   </div>
 </div>
@@ -1303,6 +1303,33 @@ function fmtDataIt(dataStr){
   return `${dd}/${mm}/${yyyy}`;
 }
 
+function currentRaceKey(now){
+  const flat = [];
+  STATE.meeting.forEach((parte,pIdx)=>parte.eventi.forEach((ev,eIdx)=>ev.batterie.forEach((b,bIdx)=>{
+    flat.push({pIdx,eIdx,bIdx,orario:new Date(b.orario)});
+  })));
+  flat.sort((a,b)=>a.orario-b.orario);
+  for(let i=0;i<flat.length;i++){
+    const cur = flat[i], next = flat[i+1];
+    if(cur.orario<=now && (!next || next.orario>now)) return `${cur.pIdx}-${cur.eIdx}-${cur.bIdx}`;
+  }
+  return null;
+}
+
+function refreshRaceStatus(){
+  const now = nowRome();
+  const currentKey = currentRaceKey(now);
+  STATE.meeting.forEach((parte,pIdx)=>parte.eventi.forEach((ev,eIdx)=>ev.batterie.forEach((b,bIdx)=>{
+    const key = `${pIdx}-${eIdx}-${bIdx}`;
+    const row = document.getElementById(`row_${key}`);
+    if(!row) return;
+    const isPast = new Date(b.orario) < now;
+    row.classList.toggle('past', isPast);
+    row.classList.toggle('current', key===currentKey);
+    row.querySelector('.orario-input').disabled = !canEdit();
+  })));
+}
+
 function render(){
   // badge file
   const fb = document.getElementById('fileBadge');
@@ -1338,17 +1365,7 @@ function render(){
   }
 
   const now = nowRome();
-  // costruisco lista flat globale (attraverso tutte le parti) per determinare la "batteria attuale"
-  let flat = [];
-  STATE.meeting.forEach((parte,pIdx)=>parte.eventi.forEach((ev,eIdx)=>ev.batterie.forEach((b,bIdx)=>{
-    flat.push({pIdx,eIdx,bIdx,orario:new Date(b.orario)});
-  })));
-  flat.sort((a,b)=>a.orario-b.orario);
-  let currentKey = null;
-  for(let i=0;i<flat.length;i++){
-    const cur = flat[i], next = flat[i+1];
-    if(cur.orario<=now && (!next || next.orario>now)){ currentKey = `${cur.pIdx}-${cur.eIdx}-${cur.bIdx}`; break; }
-  }
+  const currentKey = currentRaceKey(now);
 
   let html = '';
   STATE.meeting.forEach((parte,pIdx)=>{
@@ -1375,7 +1392,7 @@ function render(){
         html += `<tr class="batteria-row ${isPast?'past':''} ${isCurrent?'current':''}" id="${rowId}">
           <td class="batteria-numero">${b.numero}<span class="tot">/${b.totale}</span></td>
           <td><input type="time" class="orario-input ${b.manuale?'manual':''}" value="${fmtHM(orarioDate)}"
-              ${(isPast || !canEdit())?'disabled':''}
+              ${!canEdit()?'disabled':''}
               onchange="onOrarioEdit(${pIdx},${eIdx},${bIdx},this.value)"></td>
           <td class="n-atleti">${b.atleti.length} corsie</td>
           <td><button class="expand-btn" onclick="toggleDetail('${detailId}')">dettaglio</button></td>
@@ -1406,11 +1423,7 @@ function render(){
 function toggleDetail(id){
   const el = document.getElementById(id);
   if(!el) return;
-  if(OPEN_DETAIL_ID === id){            // era aperto: lo chiudo
-    el.style.display = 'none';
-    OPEN_DETAIL_ID = null;
-    return;
-  }
+  if(OPEN_DETAIL_ID === id) return;
   if(OPEN_DETAIL_ID){                   // ne apro un altro: chiudo il precedente
     const prev = document.getElementById(OPEN_DETAIL_ID);
     if(prev) prev.style.display = 'none';
@@ -1478,7 +1491,7 @@ function renderMonitor(){
 setInterval(()=>{
   const a = document.activeElement;
   if(a && a.classList && a.classList.contains('orario-input')) return; // sto editando un orario: non ricostruire
-  render();
+  refreshRaceStatus();
 }, 30000);
 
 /* init */
