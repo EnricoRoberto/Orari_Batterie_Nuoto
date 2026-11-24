@@ -546,7 +546,7 @@ footer.hint{
     </div>
     <div class="modal-body">
       <h3>Caricare la gara</h3>
-      <p>Apri <b>☰ Menu</b> e clicca <b>📄 Carica starting list (PDF)</b>, scegli la categoria (Esordienti, Assoluti, Propaganda) e seleziona una delle gare pubblicate su Federnuoto FVG da oggi in avanti: il "Programma gare" viene scaricato ed elaborato automaticamente. L'app calcola da sola batterie e orari previsti.</p>
+      <p>Apri <b>☰ Menu</b> e clicca <b>📄 Carica starting list (PDF)</b>, scegli la categoria (Esordienti, Assoluti, Propaganda) e seleziona una delle gare pubblicate su Federnuoto FVG: il "Programma gare" viene scaricato ed elaborato automaticamente. Per includere le gare delle 3 settimane precedenti, disattiva nella finestra di ricerca la spunta "Cerca solo gare da oggi in avanti". L'app calcola da sola batterie e orari previsti.</p>
       <p>Per una prova con una data di ricerca diversa, aggiungi all'indirizzo <b>?dataTest=2026-11-20</b> (o un'altra data nel formato AAAA-MM-GG). La data simulata vale solo per la ricerca: il caricamento salva comunque la gara nella sessione corrente.</p>
       <p>Se il download automatico non riesce, apri il PDF dal collegamento mostrato, salvalo e usa <b>📁 Carica PDF dal computer</b>.</p>
       <p>Il pulsante <b>🔗 Trova su Federnuoto FVG</b> apre la pagina dei comunicati del comitato regionale in una nuova scheda, per cercare e scaricare la gara.</p>
@@ -584,6 +584,11 @@ footer.hint{
         <option value="propaganda">Propaganda</option>
       </select>
       <button class="btn small ghost" id="btnFedManual">📁 Carica PDF dal computer</button>
+      <label for="setFedSoloDaOggi" style="display:flex; flex-basis:100%; align-items:center; flex-wrap:wrap; gap:8px; font-size:13px; cursor:pointer;">
+        <input type="checkbox" id="setFedSoloDaOggi" checked style="width:18px; height:18px; accent-color:var(--water);">
+        Cerca solo gare da oggi in avanti
+        <span style="font-size:12px; color:var(--text-dim);">Disattiva per includere anche le 3 settimane precedenti.</span>
+      </label>
     </div>
     <div class="modal-body">
       <div class="fed-status" id="fedTestNotice" role="status" hidden></div>
@@ -1169,6 +1174,14 @@ const FED_PROXIES = [
 ];
 const FED_WP_CAT = { 9:'Nuoto', 11:'Salvamento', 15:'Master', 16:'Propaganda' };
 let FED_POSTS = null;
+let FED_RICERCA = 0;
+const fedSoloDaOggiEl = document.getElementById('setFedSoloDaOggi');
+fedSoloDaOggiEl.checked = localStorage.getItem('fed_solo_da_oggi') !== '0';
+fedSoloDaOggiEl.addEventListener('change', ()=>{
+  localStorage.setItem('fed_solo_da_oggi', fedSoloDaOggiEl.checked ? '1' : '0');
+  FED_POSTS = null;
+  if(document.getElementById('fedModal').classList.contains('show')) fedRenderLista();
+});
 
 function fedSetStatus(msg, isError){
   const el = document.getElementById('fedStatus');
@@ -1191,14 +1204,18 @@ function fedDataDaSlug(slug){
 function fedDataRiferimento(){
   const valore = new URLSearchParams(window.location.search).get('dataTest');
   if(valore === null){
-    const oggi = new Date();
-    oggi.setHours(0,0,0,0);
-    return { data:oggi, test:false };
+    const riferimento = new Date();
+    riferimento.setHours(0,0,0,0);
+    const data = new Date(riferimento);
+    if(!fedSoloDaOggiEl.checked) data.setDate(data.getDate()-21);
+    return { data, riferimento, test:false };
   }
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(valore);
-  const data = m && fedDataDaSlug(`${m[3]}-${m[2]}-${m[1]}`);
-  if(!data) throw new Error('Data di test non valida: usa il formato AAAA-MM-GG.');
-  return { data, test:true };
+  const riferimento = m && fedDataDaSlug(`${m[3]}-${m[2]}-${m[1]}`);
+  if(!riferimento) throw new Error('Data di test non valida: usa il formato AAAA-MM-GG.');
+  const data = new Date(riferimento);
+  if(!fedSoloDaOggiEl.checked) data.setDate(data.getDate()-21);
+  return { data, riferimento, test:true };
 }
 
 function fedCategorie(post, testo){
@@ -1209,8 +1226,8 @@ function fedCategorie(post, testo){
   return cats;
 }
 
-async function fedCaricaElenco(){
-  if(FED_POSTS) return FED_POSTS;
+async function fedCaricaElenco(dataRiferimento){
+  if(FED_POSTS && FED_POSTS.data === dataRiferimento.getTime()) return FED_POSTS.elenco;
   const postPerId = new Map();
   for(const categoryId of [9,11,16]){
     let page = 1;
@@ -1227,7 +1244,6 @@ async function fedCaricaElenco(){
     }
   }
 
-  const { data: dataRiferimento } = fedDataRiferimento();
   const parser = new DOMParser();
   const out = [];
   const futurePosts = Array.from(postPerId.values()).map(p=>({
@@ -1262,11 +1278,12 @@ async function fedCaricaElenco(){
     });
   });
   out.sort((a,b)=>a.data-b.data);
-  FED_POSTS = out;
+  FED_POSTS = { data:dataRiferimento.getTime(), elenco:out };
   return out;
 }
 
 async function fedRenderLista(){
+  const ricerca = ++FED_RICERCA;
   const cat = document.getElementById('fedCategoria').value;
   const list = document.getElementById('fedList');
   const notice = document.getElementById('fedTestNotice');
@@ -1280,25 +1297,29 @@ async function fedRenderLista(){
     return;
   }
   notice.hidden = !riferimento.test;
-  notice.textContent = riferimento.test ? `Prova: ricerca dal ${riferimento.data.toLocaleDateString('it-IT')}. Il caricamento salva nella sessione corrente.` : '';
+  notice.textContent = riferimento.test
+    ? `Prova: ricerca dal ${riferimento.data.toLocaleDateString('it-IT')}${riferimento.data.getTime() !== riferimento.riferimento.getTime() ? ` (riferimento: ${riferimento.riferimento.toLocaleDateString('it-IT')})` : ''}. Il caricamento salva nella sessione corrente.`
+    : '';
   if(!cat){
-    fedSetStatus('Scegli una categoria per vedere i programmi gara disponibili dalla data di riferimento.');
+    fedSetStatus('Scegli una categoria per vedere i programmi gara disponibili nel periodo selezionato.');
     return;
   }
   fedSetStatus('Ricerca gare in corso…');
   let elenco;
   try{
-    elenco = (await fedCaricaElenco()).filter(g=>g.categorie.includes(cat));
+    elenco = (await fedCaricaElenco(riferimento.data)).filter(g=>g.categorie.includes(cat));
   }catch(err){
+    if(ricerca !== FED_RICERCA) return;
     console.error(err);
     fedSetStatus('Impossibile leggere l\'elenco gare da Federnuoto FVG. Usa "📁 Carica PDF dal computer".', true);
     return;
   }
+  if(ricerca !== FED_RICERCA) return;
   if(!elenco.length){
-    fedSetStatus('Nessun programma gare disponibile dalla data di riferimento per questa categoria.');
+    fedSetStatus(`Nessun programma gare disponibile dal ${riferimento.data.toLocaleDateString('it-IT')} per questa categoria.`);
     return;
   }
-  fedSetStatus(`${elenco.length} programm${elenco.length===1?'a':'i'} gara disponibil${elenco.length===1?'e':'i'}. Clicca "Carica" per elaborarlo.`);
+  fedSetStatus(`${elenco.length} programm${elenco.length===1?'a':'i'} gara disponibil${elenco.length===1?'e':'i'} dal ${riferimento.data.toLocaleDateString('it-IT')}. Clicca "Carica" per elaborarlo.`);
   list.innerHTML = elenco.map((g,i)=>`<div class="fed-item">
       <div>
         <div class="fed-item-title">${escapeHtml(g.titolo)}${g.specialita.map(s=>`<span class="fed-tag">${escapeHtml(s)}</span>`).join('')}</div>
