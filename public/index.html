@@ -132,6 +132,87 @@ html,body{margin:0;padding:0;}
   display:inline-block; font-size:10.5px; font-weight:700; text-transform:uppercase;
   padding:1px 7px; border-radius:5px; background:var(--navy-panel-2); color:var(--water-bright); margin-left:6px;
 }
+.fed-tag.ok{color:var(--ok);}
+
+/* Archivio risultati: record personali, classifiche, importazione */
+.modal-panel.wide{max-width:920px;}
+.ris-filtri{display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px 14px; padding:12px 20px 0;}
+.ris-filtri label{
+  display:flex; flex-direction:column; gap:4px; font-size:11px; text-transform:uppercase;
+  letter-spacing:.05em; color:var(--text-dim); font-weight:700;
+}
+.ris-filtri select, .ris-filtri input[type=search]{
+  padding:7px 10px; border-radius:8px; border:1px solid var(--line); background:var(--navy-panel);
+  color:var(--text); font-family:var(--sans); font-size:13.5px; font-weight:600; text-transform:none; letter-spacing:0;
+}
+.ris-filtri input[type=search]:focus{outline:none; border-color:var(--water-bright);}
+.ris-filtri .ris-search{flex:1 1 260px;}
+.ris-filtri .ris-bottoni{display:flex; flex-wrap:wrap; gap:8px;}
+.ris-suggest{display:flex; flex-direction:column; gap:4px; margin-bottom:10px;}
+.ris-suggest button{
+  display:flex; justify-content:space-between; gap:10px; text-align:left; cursor:pointer;
+  background:var(--navy-panel); border:1px solid var(--line); border-radius:8px; padding:8px 12px;
+  font-family:var(--sans); font-size:13.5px; font-weight:700; color:var(--text);
+}
+.ris-suggest button:hover{border-color:var(--water-bright); background:var(--navy-panel-2);}
+.ris-suggest button span{font-weight:500; font-size:12px; color:var(--text-dim);}
+.ris-atleta-head{
+  border:1px solid var(--line); border-left:4px solid var(--water); border-radius:8px;
+  padding:10px 14px; margin-bottom:10px; background:var(--navy-panel-2);
+}
+.ris-atleta-nome{font-weight:800; font-size:15px;}
+.ris-atleta-nome span{font-family:var(--mono); color:var(--lane-yellow); margin-left:6px;}
+.ris-atleta-meta{font-size:12px; color:var(--text-dim); margin-top:3px;}
+.ris-nota{font-size:12px; color:var(--text-faint); margin:0 0 8px;}
+.ris-spec{border:1px solid var(--line); border-radius:8px; margin:6px 0; overflow:hidden;}
+.ris-spec summary{
+  display:grid; grid-template-columns:minmax(120px,1.1fr) auto minmax(0,2fr) auto; gap:10px;
+  align-items:center; padding:8px 12px; cursor:pointer; list-style:none;
+}
+.ris-spec summary::-webkit-details-marker{display:none;}
+.ris-spec summary:hover{background:var(--navy-panel-2);}
+.ris-spec[open] summary{background:var(--navy-panel-2); border-bottom:1px solid var(--line);}
+.ris-spec-nome{font-weight:700;}
+.ris-tempo{font-family:var(--mono); font-weight:800; color:var(--water-bright); white-space:nowrap;}
+.ris-spec-meta{font-size:12px; color:var(--text-faint); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.ris-count{font-size:11px; color:var(--text-dim); white-space:nowrap;}
+.ris-table-wrap{overflow-x:auto;}
+table.ris-table{width:100%; border-collapse:collapse; font-size:12.5px;}
+table.ris-table th{
+  text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-faint);
+  font-weight:700; padding:6px 8px; border-bottom:1px solid var(--line); background:var(--navy-panel);
+}
+table.ris-table td{padding:5px 8px; border-bottom:1px solid var(--line); color:var(--text);}
+table.ris-table td.num, table.ris-table th.num{text-align:center; white-space:nowrap;}
+table.ris-table td.t, table.ris-table th.t{text-align:right; white-space:nowrap;}
+table.ris-table td.t{font-family:var(--mono); font-weight:700; color:var(--water-bright);}
+table.ris-table td.dim{color:var(--text-dim);}
+table.ris-table tr.best td{background:var(--current-bg);}
+.ris-link{
+  background:none; border:none; padding:0; color:var(--water-bright); font:inherit; font-weight:700;
+  cursor:pointer; text-align:left;
+}
+.ris-link:hover{text-decoration:underline;}
+.ris-ex{display:block; font-size:9.5px; color:var(--text-faint); font-weight:600;}
+.ris-azioni{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:6px 0 8px;}
+.ris-azioni label{display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; cursor:pointer;}
+.ris-azioni[hidden], .ris-progress[hidden]{display:none;}
+.ris-identita{border:2px solid var(--water); border-radius:8px; padding:14px; margin:12px 0;}
+.ris-identita h3{margin:0 0 8px;}
+.ris-identita fieldset{border:0; padding:0; margin:12px 0;}
+.ris-identita label{display:flex; align-items:flex-start; gap:8px; padding:8px 0; cursor:pointer;}
+.ris-identita input{flex-shrink:0; margin-top:3px;}
+.ris-progress{width:100%; height:10px; margin:4px 0 10px; accent-color:var(--water);}
+.ris-item{display:flex; align-items:flex-start; gap:10px; flex:1; min-width:0; cursor:pointer;}
+.ris-item input{width:18px; height:18px; margin-top:2px; accent-color:var(--water); flex:none;}
+.ris-item .fed-item-title, .ris-item .fed-item-meta{display:block;}
+.ris-item-stato{font-size:12px; color:var(--text-dim); text-align:right; max-width:45%;}
+.ris-item-stato.ok{color:var(--ok);}
+.ris-item-stato.err{color:var(--danger);}
+@media (max-width:560px){
+  .ris-spec summary{grid-template-columns:1fr auto;}
+  .ris-spec-meta, .ris-count{grid-column:1 / -1;}
+}
 
 .log-entry{padding:10px 0; border-bottom:1px solid var(--line);}
 .log-entry:last-child{border-bottom:none;}
@@ -503,6 +584,9 @@ footer.hint{
     <button class="btn ghost" id="labelUpload">📄 Carica starting list (PDF)</button>
     <input type="file" id="pdfInput" accept="application/pdf">
     <button class="btn ghost" id="btnFindOnFedernuoto" style="display:none;">🔗 Trova su Federnuoto FVG</button>
+    <button class="btn ghost" id="btnRecord">🏅 Record personali</button>
+    <button class="btn ghost" id="btnClassifiche">🏆 Classifiche</button>
+    <button class="btn ghost" id="btnImportaRisultati" style="display:none;">📊 Importa risultati</button>
     <button class="btn ghost" id="btnSettings">⚙️ Impostazioni</button>
     <button class="btn ghost" id="btnPrint">🖨️ Stampa / PDF</button>
     <button class="btn ghost" id="btnHelp">❓ Guida</button>
@@ -597,6 +681,12 @@ footer.hint{
       <h3>Stampa</h3>
       <p>Il pulsante <b>🖨️ Stampa / PDF</b> genera una versione pulita da stampare o salvare in PDF, con in alto un riquadro “🖨️ Stampa — Cronoprogramma gara” che riporta file e data di stampa.</p>
 
+      <h3>Record personali e classifiche</h3>
+      <p>L'archivio dei risultati raccoglie i tempi delle gare già disputate (PDF dei "Risultati" pubblicati su Federnuoto FVG) ed è lo stesso per tutti gli utenti e tutte le sessioni. Un risultato già presente non viene mai duplicato, anche se compare in più PDF.</p>
+      <p><b>🏅 Record personali</b>: cerca un atleta per cognome e/o nome; per ogni vasca (25 m / 50 m) e specialità vedi il suo miglior tempo in archivio, con data e gara. Apri una specialità per vedere tutti i suoi tempi. Gli atleti sono distinti per nome, anno di nascita e società. In caso di omonimi, cambio società o società mancante, l'Amministratore conferma l'identità prima di salvare il PDF: può mantenere gli atleti separati, associare esplicitamente i risultati a un atleta già presente oppure annullare. La scelta viene conservata nell'archivio condiviso.</p>
+      <p><b>🏆 Classifiche</b>: scegli specialità, sesso, vasca, categoria, anno di nascita e periodo. Per ogni atleta conta il miglior tempo; a parità di tempo la posizione è “ex aequo”. Clicca il nome di un atleta per aprire i suoi record personali.</p>
+      <p><b>📊 Importa risultati</b> (solo Amministratore): cerca su Federnuoto FVG i PDF dei risultati del periodo scelto (gare Master escluse), seleziona quelli da importare e premi <b>Importa selezionati</b>; in alternativa usa <b>📁 PDF dal computer</b>. Le gare già importate sono indicate e non vengono reimportate. Se il PDF non indica la vasca, si usa quella scelta in “Vasca se non indicata”. Una gara importata per errore si può eliminare dall'elenco “Gare in archivio”.</p>
+
       <h3>Le gare passate</h3>
       <p>Le batterie con orario già trascorso appaiono in grigio, ma il loro orario resta modificabile (in modalità Amministratore): le batterie successive della stessa parte vengono ricalcolate.</p>
     </div>
@@ -643,6 +733,101 @@ footer.hint{
       <button class="btn small danger" id="btnClearLog">🗑️ Cancella tutti i log</button>
     </div>
     <div class="modal-body" id="logModalBody"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="recordModal">
+  <div class="modal-panel wide" role="dialog" aria-labelledby="recordTitle">
+    <div class="modal-head">
+      <h2 id="recordTitle">🏅 Record personali</h2>
+      <button class="modal-close" id="recordModalClose" aria-label="Chiudi">×</button>
+    </div>
+    <div class="ris-filtri">
+      <label class="ris-search">Atleta
+        <input type="search" id="recordCerca" placeholder="Cognome e/o nome" autocomplete="off">
+      </label>
+    </div>
+    <div class="modal-body">
+      <div class="fed-status" id="recordStatus" role="status"></div>
+      <div class="ris-suggest" id="recordSuggest"></div>
+      <div id="recordBody"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="classificheModal">
+  <div class="modal-panel wide" role="dialog" aria-labelledby="classificheTitle">
+    <div class="modal-head">
+      <h2 id="classificheTitle">🏆 Classifiche</h2>
+      <button class="modal-close" id="classificheModalClose" aria-label="Chiudi">×</button>
+    </div>
+    <div class="ris-filtri">
+      <label>Specialità <select id="clsSpec"></select></label>
+      <label>Sesso <select id="clsSesso"></select></label>
+      <label>Vasca <select id="clsVasca"></select></label>
+      <label>Categoria <select id="clsCat"></select></label>
+      <label>Anno di nascita <select id="clsAnno"></select></label>
+      <label>Periodo <select id="clsPeriodo"></select></label>
+    </div>
+    <div class="modal-body">
+      <div class="fed-status" id="clsStatus" role="status"></div>
+      <div id="clsBody"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="risImportModal">
+  <div class="modal-panel wide" role="dialog" aria-labelledby="risImportTitle">
+    <div class="modal-head">
+      <h2 id="risImportTitle">📊 Importa risultati <span style="font-weight:500; font-size:12px; opacity:.85;">(solo Amministratore)</span></h2>
+      <button class="modal-close" id="risImportModalClose" aria-label="Chiudi">×</button>
+    </div>
+    <div class="ris-filtri">
+      <label>Periodo
+        <select id="risPeriodo">
+          <option value="3">Ultimi 3 mesi</option>
+          <option value="6">Ultimi 6 mesi</option>
+          <option value="12" selected>Ultimi 12 mesi</option>
+          <option value="24">Ultimi 24 mesi</option>
+        </select>
+      </label>
+      <label>Vasca se non indicata
+        <select id="risVascaDef">
+          <option value="25">25 m</option>
+          <option value="50">50 m</option>
+        </select>
+      </label>
+      <div class="ris-bottoni">
+        <button class="btn small primary" id="btnRisCerca">🔍 Cerca su Federnuoto</button>
+        <button class="btn small ghost" id="btnRisManuale">📁 PDF dal computer</button>
+        <input type="file" id="risPdfInput" accept="application/pdf" multiple style="display:none;">
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="fed-status" id="risStatus" role="status">Cerca i PDF dei risultati pubblicati su Federnuoto FVG oppure caricali dal computer. I risultati già presenti in archivio non vengono duplicati.</div>
+      <progress class="ris-progress" id="risProgress" value="0" max="1" hidden></progress>
+      <form class="ris-identita" id="risIdentita" aria-labelledby="risIdentitaTitle" hidden>
+        <h3 id="risIdentitaTitle" tabindex="-1">Verifica identità atleta</h3>
+        <p id="risIdentitaInfo"></p>
+        <p>Nessun risultato di questo PDF verrà salvato finché non avrai risolto tutti i casi dubbi. Associa a un atleta esistente solo se hai verificato che si tratta della stessa persona.</p>
+        <fieldset>
+          <legend>Come devono essere archiviati questi risultati?</legend>
+          <div id="risIdentitaScelte"></div>
+        </fieldset>
+        <div class="ris-azioni">
+          <button type="submit" class="btn small primary" id="btnRisConfermaIdentita" disabled>Conferma identità</button>
+          <button type="button" class="btn small ghost" id="btnRisAnnullaIdentita">Annulla importazione</button>
+        </div>
+      </form>
+      <div class="ris-azioni" id="risAzioni" hidden>
+        <label><input type="checkbox" id="risSelTutti"> Seleziona tutti i nuovi</label>
+        <button class="btn small primary" id="btnRisImporta">Importa selezionati</button>
+        <button class="btn small danger" id="btnRisStop" style="display:none;">Interrompi</button>
+      </div>
+      <div id="risLista"></div>
+      <h3 style="margin-top:18px;">Gare in archivio</h3>
+      <div id="risArchivio"></div>
+    </div>
   </div>
 </div>
 
@@ -879,6 +1064,12 @@ function updateLockUI(){
   if(multiClientField) multiClientField.style.display = UNLOCKED ? 'flex' : 'none';
   document.getElementById('piscineAdmin').style.display = UNLOCKED ? 'flex' : 'none';
   if(btnLog) btnLog.style.display = UNLOCKED ? 'inline-flex' : 'none';
+  document.getElementById('btnImportaRisultati').style.display = UNLOCKED ? 'inline-flex' : 'none';
+  if(!UNLOCKED){
+    document.getElementById('risImportModal').classList.remove('show');
+    if(RIS_IMPORT.inCorso) RIS_IMPORT.stop = true;
+    if(RIS_IMPORT.annullaIdentita) RIS_IMPORT.annullaIdentita();
+  }
   render();
 }
 document.getElementById('btnLock').addEventListener('click', ()=>{
@@ -1014,6 +1205,516 @@ async function parsePdf(file){
   }
   return eventi;
 }
+
+/* ============================================================
+   ARCHIVIO RISULTATI — logica pura (senza DOM né Firebase)
+   Legge i PDF dei risultati Federnuoto (formati TCPDF provinciale,
+   "Elaborazione dati" FIN e Propaganda) e calcola record e classifiche.
+   ============================================================ */
+// [RISULTATI-LOGICA-INIZIO]
+const RIS_TEMPO_RE = /^(?:(\d{1,2})[':])?(\d{1,2})[.,](\d{2})$/;
+const RIS_EVENTO_RE = /^(25|50|100|200|400|800|1500)\s*m?\s+(\S.*)$/i;
+const RIS_ANNI_FINE_RE = /\s+(?:19|20)\d{2}(?:\s*[-\/–]\s*(?:19|20)?\d{2})*$/;
+const RIS_STILE_INIZIO_RE = /^(STILE|DORSO|RANA|FARFALLA|DELFINO|MISTI|MISTO)(?=\s|$)/i;
+const RIS_CAT_INIZIO_RE = /^(FEMM|MASC|M\/F|F\/M|GIOVANISSIM|ALLIEV|ESORD|ESO$|RAGAZZ|JUNIOR|CADETT|SENIOR|ASSOLUT|MASTER)/i;
+const RIS_STAFFETTA_RE = /^\d+\s*[xX]\s*\d+/;
+const RIS_SEZIONE_ESCLUSA_RE = /^(NON\s+CLASSIFICAT|SQUALIFICAT|RITIRAT|ASSENT|NON\s+PARTIT)/i;
+const RIS_RIGA_NAZ_RE = /^((?:\d{1,3}[.)°]?\s+){0,3})([\p{L}'’][^\d]*?)\s+((?:19|20)\d{2})\s+([A-Z]{3})\s+(.+)$/u;
+const RIS_RIGA_RE = /^((?:\d{1,3}[.)°]?\s+){0,3})([\p{L}'’][^\d]*?)\s+((?:19|20)\d{2})\s+(.+)$/u;
+const RIS_STATI = new Set(['S','SQ','SQUAL','DSQ','ASS','ASS.','RIT','RIT.','NP','N.P.','NC','N.C.','ESCL','SQ.']);
+const RIS_STILI = {
+  'STILE LIBERO':'Stile libero', 'STILE':'Stile libero', 'SL':'Stile libero', 'S.L.':'Stile libero', 'LIBERO':'Stile libero',
+  'DORSO':'Dorso', 'RANA':'Rana', 'FARFALLA':'Farfalla', 'DELFINO':'Farfalla',
+  'MISTI':'Misti', 'MISTO':'Misti', 'MISTI INDIVIDUALI':'Misti'
+};
+const RIS_ORDINE_STILI = ['Stile libero','Dorso','Rana','Farfalla','Misti'];
+const RIS_MESI = { GENNAIO:1, FEBBRAIO:2, MARZO:3, APRILE:4, MAGGIO:5, GIUGNO:6, LUGLIO:7, AGOSTO:8, SETTEMBRE:9, OTTOBRE:10, NOVEMBRE:11, DICEMBRE:12 };
+
+// tempo gara in centesimi; null se non e' un tempo valido (S, ASS, punti "20.0", 59'59.99…)
+function risTempoCs(s){
+  if(s === null || s === undefined) return null;
+  const m = RIS_TEMPO_RE.exec(String(s).trim());
+  if(!m) return null;
+  const min = m[1] ? parseInt(m[1],10) : 0;
+  const sec = parseInt(m[2],10);
+  if(sec > 59) return null;
+  const cs = (min*60 + sec)*100 + parseInt(m[3],10);
+  return cs > 0 && cs < 359999 ? cs : null;
+}
+
+function risFormattaTempo(cs){
+  const min = Math.floor(cs/6000);
+  const sec = Math.floor((cs%6000)/100);
+  const cent = String(cs%100).padStart(2,'0');
+  return min ? `${min}'${String(sec).padStart(2,'0')}.${cent}` : `${sec}.${cent}`;
+}
+
+function risMaiuscolo(s){
+  return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
+}
+// solo lettere: "D' ADDA" = "D'ADDA", "ARICO'" = "ARICÒ", "BUSO, MARILENA" = "BUSO MARILENA"
+function risChiaveNome(s){ return risMaiuscolo(s).replace(/[^A-Z]/g,''); }
+function risNomeVisibile(s){ return String(s||'').replace(/,/g,' ').replace(/\s+/g,' ').trim(); }
+function risIsoData(g, m, a){ return `${a}-${String(m).padStart(2,'0')}-${String(g).padStart(2,'0')}`; }
+function risDataValida(g, m, a){
+  const d = new Date(Date.UTC(a, m-1, g));
+  return a>=1990 && a<=2100 && d.getUTCMonth()===m-1 && d.getUTCDate()===g ? risIsoData(g,m,a) : null;
+}
+function risDataIt(iso){
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||'');
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : '—';
+}
+
+function risNormalizzaCategoria(testo){
+  let t = risMaiuscolo(testo).replace(/[-–]/g,' ').split(' ').filter(x=>x && !/^(M\/F|F\/M)$/.test(x));
+  let sesso = 'X';
+  // anche abbreviati ("ASSOLUTI FEM", "ASSOLUTI MASCH"); MASTER non indica il sesso
+  const iS = t.findIndex(x=>/^(FEM|MAS(?!TER))/.test(x));
+  if(iS >= 0){ sesso = /^F/.test(t[iS]) ? 'F' : 'M'; t.splice(iS,1); }
+  // "ESORDIENTI B F", anche troncato a due lettere ("ESORDIENTI B MA", "ESORDIENTI B FE")
+  else if(t.length > 1 && /^(F|M|FE|MA)$/.test(t[t.length-1])){ sesso = t.pop().charAt(0); }
+  const iFine = t.findIndex(x=>/^(FINAL[EI]|SERIE|BATTERI[AE]|SERIES)$/.test(x));
+  if(iFine >= 0) t = t.slice(0, iFine);
+  t = t.map(x=>({ GIOVANISSIME:'GIOVANISSIMI', ALLIEVE:'ALLIEVI', RAGAZZE:'RAGAZZI', ASSOLUTE:'ASSOLUTI', CADETTE:'CADETTI',
+    ESO:'ESORDIENTI', ESORD:'ESORDIENTI', 'ESORD.':'ESORDIENTI' }[x] || x));
+  return { cat:t.join(' '), sesso };
+}
+
+function risStile(testo){
+  const t = risMaiuscolo(testo).replace(/\s*\.\s*$/,'');
+  if(RIS_STILI[t]) return RIS_STILI[t];
+  const minuscolo = String(testo).replace(/\s+/g,' ').trim().toLowerCase();
+  return minuscolo.charAt(0).toUpperCase() + minuscolo.slice(1);
+}
+
+// "50 m Stile Libero - ASSOLUTI MASCHI", "100m Nuoto con ostacoli - ESORDIENTI A F",
+// "200 Stile Libero - Esordienti B Femmine", "50 STILE LIBERO FEMMINE ALLIEVE"
+function risEventoDaRiga(riga){
+  let l = String(riga||'').replace(/\s+/g,' ').trim();
+  if(!RIS_EVENTO_RE.test(l) || l.split(' ').some(t=>risTempoCs(t)!==null)) return null;
+  if(/(^|\s)(19|20)\d{2}(\s|$)/.test(l)){
+    // anno di nascita in coda all'intestazione ("100 MISTI FEMMINE 2018"); altrimenti e' la riga di un atleta
+    const senzaAnni = l.replace(RIS_ANNI_FINE_RE, '');
+    const m0 = RIS_EVENTO_RE.exec(senzaAnni);
+    if(senzaAnni === l || /(^|\s)(19|20)\d{2}(\s|$)/.test(senzaAnni) || !m0 || !RIS_STILE_INIZIO_RE.test(m0[2])) return null;
+    l = senzaAnni;
+  }
+  const m = RIS_EVENTO_RE.exec(l);
+  const resto = m[2].trim();
+  let stileTxt, catTxt;
+  const iDash = resto.search(/\s[-–]\s/);
+  if(iDash >= 0){
+    stileTxt = resto.slice(0, iDash);
+    catTxt = resto.slice(iDash+3);
+  } else {
+    const t = resto.split(' ');
+    // senza trattino la categoria inizia dal sesso o dal nome della categoria ("50 DORSO M/F GIOVANISSIMI")
+    const iS = t.findIndex(x=>RIS_CAT_INIZIO_RE.test(x));
+    if(iS > 0){ stileTxt = t.slice(0,iS).join(' '); catTxt = t.slice(iS).join(' '); }
+    else { stileTxt = resto; catTxt = ''; }
+  }
+  if(!/[A-Za-z]{2}/.test(stileTxt)) return null;
+  const { cat, sesso } = risNormalizzaCategoria(catTxt);
+  return { dist:parseInt(m[1],10), stile:risStile(stileTxt), cat, sesso };
+}
+
+// righe con data: copertina TCPDF, data della sessione, "CITTA', gg/mm/aaaa", "Pubblicata: …"
+function risDataDaRiga(riga){
+  const l = String(riga||'').replace(/\s+/g,' ').trim();
+  let m = /^\S+\s+\d{4}\s+(\d{2})\/(\d{2})\/(\d{4})\s+(.+)$/.exec(l);
+  if(m){ const data = risDataValida(+m[1],+m[2],+m[3]); if(data) return { tipo:'cover', data, titolo:m[4].trim() }; }
+  m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s*-\s*\d{1,2}[:.]\d{2})?$/.exec(l);
+  if(m){ const data = risDataValida(+m[1],+m[2],+m[3]); if(data) return { tipo:'data', data }; }
+  m = /^Pubblicat[ao]\s*:?\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/i.exec(l);
+  if(m){ const data = risDataValida(+m[1],+m[2],+m[3]); if(data) return { tipo:'pubblicata', data }; }
+  m = /^([\p{L}'’ .]+?)\s*,\s*(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})$/u.exec(l);
+  if(m){ const data = risDataValida(+m[2],+m[3],+m[4]); if(data) return { tipo:'citta', data, luogo:m[1].trim() }; }
+  m = /^([\p{L}'’ .]+?)\s*,\s*(\d{1,2})\s+([\p{L}]+)\s+(\d{4})$/u.exec(l);
+  if(m && RIS_MESI[risMaiuscolo(m[3])]){
+    const data = risDataValida(+m[2], RIS_MESI[risMaiuscolo(m[3])], +m[4]);
+    if(data) return { tipo:'citta', data, luogo:m[1].trim() };
+  }
+  return null;
+}
+
+function risVascaDaRiga(riga){
+  const m = /\bV\.\s*(25|50)\s*m\b/i.exec(riga) || /\bvasca\s+(?:da\s+)?(25|50)\s*m(?:etri)?\b/i.exec(riga);
+  return m ? parseInt(m[1],10) : null;
+}
+
+function risRigaAtleta(riga, conNaz){
+  const l = String(riga||'').replace(/\s+/g,' ').trim();
+  let m = null, resto, nome, anno;
+  if(conNaz !== false){
+    m = RIS_RIGA_NAZ_RE.exec(l);
+    if(m){ nome = m[2]; anno = m[3]; resto = m[5]; }
+  }
+  if(!m && conNaz !== true){
+    m = RIS_RIGA_RE.exec(l);
+    if(m){ nome = m[2]; anno = m[3]; resto = m[4]; }
+  }
+  if(!m) return null;
+  const tok = resto.split(' ');
+  let iT = -1, cs = null;
+  tok.forEach((t,i)=>{
+    const v = risTempoCs(t);
+    // il tempo d'arrivo e' il maggiore: i passaggi e il "rap.25" in vasca da 50 sono inferiori
+    if(v !== null){ if(iT < 0) iT = i; if(cs === null || v > cs) cs = v; }
+  });
+  let soc;
+  if(iT >= 0){
+    soc = tok.slice(0, iT);
+    if(tok.slice(iT+1).some(t=>RIS_STATI.has(t.toUpperCase()))) cs = null;
+  } else {
+    const iNum = tok.findIndex(t=>/^\d/.test(t));
+    soc = iNum >= 0 ? tok.slice(0, iNum) : tok.slice();
+    while(soc.length > 1 && RIS_STATI.has(soc[soc.length-1].toUpperCase())) soc.pop();
+  }
+  const vascaRiga = iT > 0 && /^(25|50)$/.test(tok[iT-1]) ? parseInt(tok[iT-1],10) : null;
+  while(soc.length > 1 && /^\d{1,2}\.{0,2}$/.test(soc[soc.length-1])) soc.pop();
+  const nomeVis = risNomeVisibile(nome);
+  if(!risChiaveNome(nomeVis)) return null;
+  return { nome:nomeVis, anno:parseInt(anno,10), societa:soc.join(' ').trim(), cs, vasca:vascaRiga };
+}
+
+function risTitoloDaPagina(righe){
+  for(const l of (righe||[]).slice(0,10)){
+    if(risDataDaRiga(l) || /^risultat/i.test(l) || /^(pos|ordine|comitato)\b/i.test(l) ||
+       /elaborazione dati|stampato il|pag(e|\.)?\s*\d/i.test(l) || risEventoDaRiga(l)) continue;
+    const t = l.replace(/\s*[-–]?\s*V\.\s*(25|50)\s*m\b.*$/i,'').trim();
+    if(/\p{L}{3}/u.test(t)) return t;
+  }
+  return '';
+}
+
+function risChiavePrestazione(p){
+  return [p.data||'', p.dist, risMaiuscolo(p.stile), p.sesso, risIdAtleta(p), p.vasca, p.cs].join('|');
+}
+function risNomeAnno(p){ return risChiaveNome(p.nome)+'|'+p.anno; }
+function risSocietaKey(s){ return risMaiuscolo(s).replace(/[^A-Z0-9]/g,''); }
+function risIdentitaFonte(p){ return risNomeAnno(p)+'|'+risSocietaKey(p.societa); }
+function risIdAtleta(p){ return p.atletaId || risIdentitaFonte(p); }
+
+function risImportAnnullato(){
+  const err = new Error('Importazione annullata: il PDF in corso non è stato salvato.');
+  err.code = 'RIS_IMPORT_ANNULLATO';
+  return err;
+}
+
+// Le associazioni confermate sono salvate sulle righe, non nelle preferenze del browser.
+async function risRisolviAtleti(prestazioni, esistenti, scegli, fonte){
+  const perNome = new Map();
+  function aggiungi(p){
+    const nomeAnno = risNomeAnno(p), id = risIdAtleta(p);
+    if(!perNome.has(nomeAnno)) perNome.set(nomeAnno, new Map());
+    const famiglia = perNome.get(nomeAnno);
+    if(!famiglia.has(id)) famiglia.set(id, { id, nome:p.nome, anno:p.anno, societa:new Set(), fonti:new Set() });
+    const a = famiglia.get(id);
+    a.societa.add(p.societa || '');
+    a.fonti.add(risIdentitaFonte(p));
+  }
+  esistenti.forEach(aggiungi);
+  const gruppi = new Map();
+  prestazioni.forEach(p=>{
+    const k = risIdentitaFonte(p);
+    if(!gruppi.has(k)) gruppi.set(k, []);
+    gruppi.get(k).push(p);
+  });
+  const risolte = new Map();
+  // Le società note offrono candidati anche alle righe incomplete dello stesso PDF.
+  const ordinati = Array.from(gruppi.values()).sort((a,b)=>Number(!a[0].societa)-Number(!b[0].societa));
+  for(const gruppo of ordinati){
+    const p = gruppo[0], firma = risIdentitaFonte(p);
+    const candidati = Array.from((perNome.get(risNomeAnno(p)) || new Map()).values());
+    const esatti = p.societa ? candidati.filter(a=>a.fonti.has(firma)) : [];
+    let id;
+    if(esatti.length === 1){
+      id = esatti[0].id;
+    } else if(candidati.length || !p.societa){
+      let nuovoId = firma;
+      // Società assente: non unire automaticamente persone di PDF diversi.
+      if(!p.societa || candidati.some(a=>a.id === nuovoId)) nuovoId += '|'+fonte;
+      while(candidati.some(a=>a.id === nuovoId)) nuovoId += '|nuovo';
+      id = await scegli({
+        nome:p.nome, anno:p.anno, societa:p.societa, nuovoId,
+        candidati:candidati.map(a=>({ id:a.id, nome:a.nome, anno:a.anno, societa:Array.from(a.societa) }))
+      });
+      if(id === null) throw risImportAnnullato();
+      if(id !== nuovoId && !candidati.some(a=>a.id === id)) throw new Error('Scelta identità non valida.');
+    } else {
+      id = firma;
+    }
+    gruppo.forEach(r=>{
+      const risolta = { ...r };
+      if(id !== risIdentitaFonte(r)) risolta.atletaId = id;
+      else delete risolta.atletaId;
+      risolte.set(r, risolta);
+      aggiungi(risolta);
+    });
+  }
+  return prestazioni.map(p=>risolte.get(p));
+}
+// sotto 0,38 s al metro (piu' veloce del record del mondo dei 50 sl): riga del PDF malformata
+// (es. "28.08 00'01.92 :00'30.00" nei 100 farfalla: c'e' solo il passaggio)
+function risTempoPlausibile(dist, stile, cs){
+  return !RIS_ORDINE_STILI.includes(stile) || cs >= dist*38;
+}
+
+// FIN, 200 m e oltre: la societa' va a capo, con o senza parziali ("Tergeste Nuoto Altura ssd 35.51 36.25 35.04")
+function risSocietaContinuazione(riga){
+  const tok = String(riga||'').replace(/\s+/g,' ').trim().split(' ');
+  const iT = tok.findIndex(t=>risTempoCs(t)!==null);
+  if(iT < 0){
+    if(tok.length > 8 || /\d/.test(riga) || /elaborazion|stampat|risultat|classific|federazion|cognome|societa|www\.|https?:/i.test(riga)) return '';
+    return tok.some(t=>/\p{L}{2}/u.test(t)) ? tok.join(' ') : '';
+  }
+  if(iT < 1 || tok.slice(iT).some(t=>risTempoCs(t)===null)) return '';
+  const soc = tok.slice(0, iT);
+  if(/^\d/.test(soc[0]) || !soc.some(t=>/\p{L}{2}/u.test(t))) return '';
+  return soc.join(' ');
+}
+
+// pagine: array di array di righe (come restituite da getPageLines)
+function risAnalizzaPagine(pagine, opzioni){
+  const opz = opzioni || {};
+  const tutte = [].concat(...pagine);
+  let conNaz = null;
+  for(const l of tutte){
+    if(/\bANNO\b/i.test(l) && /(COGNOME|ATLETA|NOME)/i.test(l)){ conNaz = /\bNAZ\b/i.test(l); break; }
+  }
+  // senza intestazione: colonna nazionalita' solo se ci sono righe "… 2015 ITA …" (evita "2015 CUS Udine")
+  if(conNaz === null) conNaz = tutte.some(l=>{ const m = RIS_RIGA_NAZ_RE.exec(String(l).replace(/\s+/g,' ').trim()); return !!m && m[4] === 'ITA'; });
+  let dataCover=null, dataSessione=null, dataCitta=null, dataPubbl=null, titoloCover='', luogo='', vascaDoc=null;
+  for(const l of tutte){
+    const d = risDataDaRiga(l);
+    if(d){
+      if(d.tipo==='cover' && !dataCover){ dataCover = d.data; titoloCover = d.titolo; }
+      else if(d.tipo==='data' && !dataSessione) dataSessione = d.data;
+      else if(d.tipo==='citta'){ if(!dataCitta) dataCitta = d.data; if(!luogo) luogo = d.luogo; }
+      else if(d.tipo==='pubblicata' && !dataPubbl) dataPubbl = d.data;
+    }
+    if(!vascaDoc) vascaDoc = risVascaDaRiga(l);
+  }
+  const dataDoc = dataCover || dataSessione || dataCitta || dataPubbl || opz.dataFallback || '';
+  const annoRif = dataDoc ? parseInt(dataDoc.slice(0,4),10) : new Date().getFullYear();
+  const vascaPredefinita = opz.vascaPredefinita === 50 ? 50 : 25;
+
+  const prestazioni = [];
+  const eventi = new Set();
+  let senzaTempo = 0;
+  let evento = null, esclusa = false, vasca = vascaDoc, dataCorr = dataDoc;
+  for(const righe of pagine){
+    const tcpdf = righe.some(l=>/Tempo\s+rap/i.test(l));
+    let senzaSoc = null;
+    for(const l of righe){
+      const precedente = senzaSoc;
+      senzaSoc = null;
+      const v = risVascaDaRiga(l);
+      if(v){ vasca = v; continue; }
+      const d = risDataDaRiga(l);
+      if(d){ if(d.tipo==='data' || d.tipo==='cover') dataCorr = d.data; continue; }
+      if(RIS_STAFFETTA_RE.test(l)){ evento = null; esclusa = false; continue; }
+      const ev = risEventoDaRiga(l);
+      if(ev){ evento = ev; esclusa = false; eventi.add(`${ev.dist} ${ev.stile} ${ev.cat} ${ev.sesso}`); continue; }
+      if(/^serie\b/i.test(l)){ esclusa = false; continue; }
+      if(RIS_SEZIONE_ESCLUSA_RE.test(l)){ esclusa = true; continue; }
+      if(!evento || esclusa) continue;
+      const r = risRigaAtleta(l, conNaz);
+      if(!r){
+        if(precedente) precedente.societa = risSocietaContinuazione(l);
+        continue;
+      }
+      if(r.anno < 1920 || r.anno > annoRif-3) continue;
+      if(r.cs === null || !risTempoPlausibile(evento.dist, evento.stile, r.cs)){ senzaTempo++; continue; }
+      const p = {
+        nome:r.nome, anno:r.anno, societa:r.societa,
+        dist:evento.dist, stile:evento.stile, cat:evento.cat, sesso:evento.sesso,
+        vasca:(tcpdf && r.vasca) || vasca || vascaPredefinita,
+        cs:r.cs, data:dataCorr || ''
+      };
+      prestazioni.push(p);
+      if(!p.societa) senzaSoc = p;
+    }
+  }
+  // Deduplica solo dopo avere letto le società sulle righe successive.
+  const filtrate = risFiltraNuove(prestazioni, new Set());
+  return {
+    titolo: titoloCover || risTitoloDaPagina(pagine[0]),
+    luogo, data:dataDoc, vasca:vascaDoc || 0,
+    prestazioni:filtrate.nuove, senzaTempo, duplicatiInterni:filtrate.duplicati, eventi:Array.from(eventi)
+  };
+}
+
+function risFiltraNuove(prestazioni, chiaviEsistenti){
+  const viste = new Set(chiaviEsistenti);
+  const posizioni = new Map();
+  const nuove = [];
+  let duplicati = 0;
+  prestazioni.forEach(p=>{
+    const k = risChiavePrestazione(p);
+    if(viste.has(k)){
+      duplicati++;
+      const i = posizioni.get(k);
+      if(i !== undefined && !nuove[i].societa && p.societa) nuove[i] = p;
+      return;
+    }
+    viste.add(k);
+    posizioni.set(k, nuove.length);
+    nuove.push(p);
+  });
+  return { nuove, duplicati };
+}
+
+function risAssociazioni(prestazioni){
+  const m = new Map();
+  prestazioni.forEach(p=>{
+    const fonte = risIdentitaFonte(p);
+    if(p.atletaId && p.atletaId !== fonte){
+      m.set(fonte, { nome:p.nome, anno:p.anno, societa:p.societa, atletaId:p.atletaId });
+    }
+  });
+  return Array.from(m.values());
+}
+
+const RIS_CAMPI = ['nome','anno','societa','dist','stile','cat','sesso','vasca','cs','data'];
+function risImpacchetta(prestazioni){
+  return prestazioni.map(p=>{
+    const campi = RIS_CAMPI.map(c=>String(p[c] === undefined || p[c] === null ? '' : p[c]).replace(/[|\r\n]/g,' '));
+    if(p.atletaId) campi.push(encodeURIComponent(p.atletaId));
+    return campi.join('|');
+  }).join('\n');
+}
+function risSpacchetta(testo, gk){
+  if(!testo) return [];
+  return String(testo).split('\n').map(riga=>{
+    const f = riga.split('|');
+    if(f.length !== RIS_CAMPI.length && f.length !== RIS_CAMPI.length+1) return null;
+    const p = { nome:f[0], anno:+f[1], societa:f[2], dist:+f[3], stile:f[4], cat:f[5], sesso:f[6], vasca:+f[7], cs:+f[8], data:f[9] };
+    if(f[10]) p.atletaId = decodeURIComponent(f[10]);
+    if(gk) p.gk = gk;
+    return p.nome && p.cs > 0 ? p : null;
+  }).filter(Boolean);
+}
+
+function risHash(s){
+  let h1 = 0x811c9dc5, h2 = 0x5bd1e995;
+  const t = String(s);
+  for(let i=0;i<t.length;i++){
+    const c = t.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 16777619);
+    h2 = Math.imul(h2 ^ c, 2246822507);
+  }
+  return (h1>>>0).toString(36) + (h2>>>0).toString(36);
+}
+
+// link ai PDF dei risultati individuali (esclusi classifiche di societa', punteggi, staffette, master…)
+function risLinkRisultati(testo, nomeFile){
+  const t = `${testo||''} ${nomeFile||''}`.replace(/[-_]+/g,' ');
+  // "Individuali" senza "risultati" e' l'elenco iscritti (tempi d'iscrizione, anche rapportati): non sono risultati
+  if(!/risultat/i.test(t)) return false;
+  return !/societ|class\.?\s*soc|punteggi|migliori?\s*prestazion|mig\.?\s*prest|graduatori|master|sorteggio|staffett|programma/i.test(t);
+}
+
+function risOrdineStile(stile){
+  const i = RIS_ORDINE_STILI.indexOf(stile);
+  return i < 0 ? 99 : i;
+}
+function risConfrontaSpec(a, b){
+  return (a.vasca||0)-(b.vasca||0) || risOrdineStile(a.stile)-risOrdineStile(b.stile) ||
+    String(a.stile).localeCompare(String(b.stile)) || a.dist-b.dist;
+}
+function risMigliore(a, b){
+  if(!a) return b;
+  if(b.cs < a.cs || (b.cs === a.cs && (b.data||'9') < (a.data||'9'))) return b;
+  return a;
+}
+
+function risIndiceAtleti(prestazioni){
+  const indice = new Map();
+  prestazioni.forEach(p=>{
+    const id = risIdAtleta(p);
+    let a = indice.get(id);
+    if(!a){ a = { id, nome:p.nome, anno:p.anno, societa:new Map(), n:0, ultima:'' }; indice.set(id, a); }
+    a.n++;
+    if((p.data||'') >= a.ultima){ a.ultima = p.data||''; a.nome = p.nome; }
+    const ks = risMaiuscolo(p.societa);
+    if(ks && !a.societa.has(ks)) a.societa.set(ks, p.societa);
+  });
+  return indice;
+}
+
+function risCercaAtleti(indice, query, limite){
+  const parole = risMaiuscolo(query).split(' ').map(w=>w.replace(/[^A-Z]/g,'')).filter(Boolean);
+  if(!parole.length) return [];
+  const out = [];
+  indice.forEach(a=>{
+    const nome = risChiaveNome(a.nome) + ' ' + risMaiuscolo(a.nome).replace(/[^A-Z ]/g,'');
+    if(parole.every(w=>nome.includes(w))) out.push(a);
+  });
+  out.sort((x,y)=>x.nome.localeCompare(y.nome) || x.anno-y.anno);
+  return out.slice(0, limite || 30);
+}
+
+// gare miste ("50 STILE LIBERO M/F GIOVANISSIMI"): il sesso si ricava dagli altri risultati dell'atleta
+function risSessiAtleti(prestazioni){
+  const conta = new Map();
+  prestazioni.forEach(p=>{
+    if(p.sesso !== 'F' && p.sesso !== 'M') return;
+    const id = risIdAtleta(p);
+    const c = conta.get(id) || { F:0, M:0 };
+    c[p.sesso]++;
+    conta.set(id, c);
+  });
+  const sessi = new Map();
+  conta.forEach((c, id)=>{ if(c.F !== c.M) sessi.set(id, c.F > c.M ? 'F' : 'M'); });
+  return sessi;
+}
+function risSessoDi(p, sessi){
+  return p.sesso !== 'X' ? p.sesso : ((sessi && sessi.get(risIdAtleta(p))) || 'X');
+}
+
+// miglior tempo per atleta con i filtri scelti; posizioni ex aequo 1,2,2,4
+function risClassifica(prestazioni, f){
+  const migliori = new Map();
+  prestazioni.forEach(p=>{
+    if(p.dist !== f.dist || p.stile !== f.stile || p.vasca !== f.vasca || risSessoDi(p, f.sessi) !== f.sesso) return;
+    if(f.cat && p.cat !== f.cat) return;
+    if(f.anno && p.anno !== f.anno) return;
+    if(f.dal && (!p.data || p.data < f.dal)) return;
+    if(f.al && (!p.data || p.data > f.al)) return;
+    const id = risIdAtleta(p);
+    migliori.set(id, risMigliore(migliori.get(id), p));
+  });
+  const ordinati = Array.from(migliori.values()).sort((a,b)=>
+    a.cs-b.cs || (a.data||'').localeCompare(b.data||'') || a.nome.localeCompare(b.nome));
+  let pos = 0;
+  return ordinati.map((p,i)=>{
+    if(i === 0 || p.cs !== ordinati[i-1].cs) pos = i+1;
+    const exAequo = (i > 0 && ordinati[i-1].cs === p.cs) || (i < ordinati.length-1 && ordinati[i+1].cs === p.cs);
+    return { pos, exAequo, p };
+  });
+}
+
+function risRecordAtleta(prestazioni, id){
+  const mie = prestazioni.filter(p=>risIdAtleta(p) === id);
+  if(!mie.length) return null;
+  const gruppi = new Map();
+  mie.forEach(p=>{
+    const k = `${p.vasca}|${p.dist}|${p.stile}`;
+    if(!gruppi.has(k)) gruppi.set(k, { vasca:p.vasca, dist:p.dist, stile:p.stile, storico:[], migliore:null });
+    const g = gruppi.get(k);
+    g.storico.push(p);
+    g.migliore = risMigliore(g.migliore, p);
+  });
+  const specialita = Array.from(gruppi.values());
+  specialita.forEach(g=>g.storico.sort((a,b)=>(b.data||'').localeCompare(a.data||'') || a.cs-b.cs));
+  specialita.sort(risConfrontaSpec);
+  const recenti = mie.slice().sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  const societa = new Map();
+  recenti.forEach(p=>{ const k = risMaiuscolo(p.societa); if(k && !societa.has(k)) societa.set(k, p.societa); });
+  return { id, nome:recenti[0].nome, anno:recenti[0].anno, societa:Array.from(societa.values()), specialita, totale:mie.length };
+}
+// [RISULTATI-LOGICA-FINE]
 
 /* ============================================================
    MOTORE DI CALCOLO (porting di calc.py)
@@ -1528,6 +2229,733 @@ document.getElementById('fedModalClose').addEventListener('click', ()=>{
 });
 document.getElementById('fedModal').addEventListener('click', (e)=>{
   if(e.target.id === 'fedModal') document.getElementById('fedModal').classList.remove('show');
+});
+
+/* ============================================================
+   ARCHIVIO RISULTATI — condiviso su Firebase (/risultati_archivio)
+   gare/{gk}: dati della gara importata; perf/{gk}: risultati compattati.
+   Import solo Amministratore; Record personali e Classifiche per tutti.
+   Copia locale in IndexedDB per non riscaricare le gare già lette.
+   ============================================================ */
+const RIS_REF = db.ref('risultati_archivio');
+const RIS = { gare:null, perf:new Map(), prestazioni:[], identita:[], chiavi:new Set(), indice:new Map(), sessi:new Map(), spec:[] };
+const RIS_IMPORT = { elenco:[], inCorso:false, stop:false, annullaIdentita:null };
+let RIS_CARICA = null;
+let RIS_IDB = null;
+let RIS_ATLETA = localStorage.getItem('ris_atleta') || '';
+let RIS_DA_CLASSIFICA = false;
+
+function risIdb(){
+  if(!RIS_IDB) RIS_IDB = new Promise(resolve=>{
+    if(!window.indexedDB){ resolve(null); return; }
+    try{
+      const req = indexedDB.open('orari_risultati', 1);
+      req.onupgradeneeded = ()=>req.result.createObjectStore('perf');
+      req.onsuccess = ()=>resolve(req.result);
+      req.onerror = ()=>resolve(null);
+      req.onblocked = ()=>resolve(null);
+    }catch(err){ resolve(null); }
+  });
+  return RIS_IDB;
+}
+async function risCacheLeggi(){
+  const idb = await risIdb();
+  if(!idb) return new Map();
+  return new Promise(resolve=>{
+    try{
+      const tx = idb.transaction('perf', 'readonly');
+      const st = tx.objectStore('perf');
+      const chiavi = st.getAllKeys();
+      const valori = st.getAll();
+      tx.oncomplete = ()=>{
+        const m = new Map();
+        chiavi.result.forEach((k,i)=>m.set(k, valori.result[i]));
+        resolve(m);
+      };
+      tx.onerror = tx.onabort = ()=>resolve(new Map());
+    }catch(err){ resolve(new Map()); }
+  });
+}
+async function risCacheScrivi(daScrivere, daEliminare){
+  const idb = await risIdb();
+  if(!idb || (!daScrivere.size && !daEliminare.length)) return;
+  try{
+    const tx = idb.transaction('perf', 'readwrite');
+    const st = tx.objectStore('perf');
+    daScrivere.forEach((v,k)=>st.put(v, k));
+    daEliminare.forEach(k=>st.delete(k));
+  }catch(err){ console.warn('cache risultati non aggiornata:', err); }
+}
+
+function risRicostruisci(){
+  // a parita' di risultato vale la gara importata per prima
+  const ordine = Array.from(RIS.perf.keys()).sort((a,b)=>
+    String((RIS.gare[a]||{}).importatoIl||'').localeCompare(String((RIS.gare[b]||{}).importatoIl||'')));
+  const chiavi = new Set();
+  const tutte = [];
+  ordine.forEach(gk=>RIS.perf.get(gk).lista.forEach(p=>{
+    const k = risChiavePrestazione(p);
+    if(chiavi.has(k)) return;
+    chiavi.add(k);
+    tutte.push(p);
+  }));
+  RIS.prestazioni = tutte;
+  RIS.identita = Object.values(RIS.gare).flatMap(g=>g.identita || []);
+  RIS.chiavi = chiavi;
+  RIS.indice = risIndiceAtleti(tutte);
+  RIS.sessi = risSessiAtleti(tutte);
+  const spec = new Map();
+  tutte.forEach(p=>{ const k = p.dist+'|'+p.stile; if(!spec.has(k)) spec.set(k, { dist:p.dist, stile:p.stile }); });
+  RIS.spec = Array.from(spec.values()).sort(risConfrontaSpec);
+}
+
+async function risCaricaArchivioOra(){
+  const gare = (await RIS_REF.child('gare').once('value')).val() || {};
+  const cache = await risCacheLeggi();
+  const perf = new Map();
+  const daScaricare = [];
+  Object.keys(gare).forEach(gk=>{
+    const versione = gare[gk].importatoIl || '';
+    const inMemoria = RIS.perf.get(gk);
+    if(inMemoria && inMemoria.i === versione){ perf.set(gk, inMemoria); return; }
+    const c = cache.get(gk);
+    if(c && c.i === versione && typeof c.s === 'string'){ perf.set(gk, { i:versione, lista:risSpacchetta(c.s, gk) }); return; }
+    daScaricare.push(gk);
+  });
+  const scaricati = new Map();
+  await Promise.all(daScaricare.map(async gk=>{
+    const s = (await RIS_REF.child('perf/'+gk).once('value')).val();
+    const testo = typeof s === 'string' ? s : '';
+    perf.set(gk, { i:gare[gk].importatoIl || '', lista:risSpacchetta(testo, gk) });
+    scaricati.set(gk, { i:gare[gk].importatoIl || '', s:testo });
+  }));
+  risCacheScrivi(scaricati, Array.from(cache.keys()).filter(k=>!gare[k]));
+  RIS.gare = gare;
+  RIS.perf = perf;
+  risRicostruisci();
+}
+// rilegge sempre l'elenco gare (poco traffico); i risultati solo delle gare nuove o cambiate
+function risCaricaArchivio(){
+  if(!RIS_CARICA) RIS_CARICA = risCaricaArchivioOra().finally(()=>{ RIS_CARICA = null; });
+  return RIS_CARICA;
+}
+
+function risNomeGara(gk){
+  const g = RIS.gare && RIS.gare[gk];
+  return g ? (g.titolo || g.file || '') : '';
+}
+function risNotaArchivio(){
+  const gare = RIS.gare ? Object.values(RIS.gare) : [];
+  const ultima = gare.map(g=>g.data||'').sort().pop();
+  return `Archivio: ${gare.length} gar${gare.length===1?'a':'e'}, ${RIS.prestazioni.length} risultati${ultima ? `, ultima gara del ${risDataIt(ultima)}` : ''}.`;
+}
+const RIS_ARCHIVIO_VUOTO = 'L’archivio dei risultati è vuoto: l’Amministratore deve importare i risultati (menu → 📊 Importa risultati).';
+
+function risOggi(){
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(new URLSearchParams(window.location.search).get('dataTest') || '');
+  const d = m ? new Date(+m[1], +m[2]-1, +m[3]) : new Date();
+  d.setHours(0,0,0,0);
+  return d;
+}
+function risIsoDaDate(d){ return risIsoData(d.getDate(), d.getMonth()+1, d.getFullYear()); }
+function risMesiFa(mesi){ const d = risOggi(); d.setMonth(d.getMonth()-mesi); return d; }
+
+async function risLeggiPagine(blob){
+  const doc = await pdfjsLib.getDocument({ data: await blob.arrayBuffer() }).promise;
+  try{
+    const pagine = [];
+    for(let n=1; n<=doc.numPages; n++){
+      const page = await doc.getPage(n);
+      pagine.push(await getPageLines(page));
+      page.cleanup();
+    }
+    return pagine;
+  }finally{
+    doc.destroy();
+  }
+}
+
+function risVerificaImportConsentito(){
+  if(!UNLOCKED) throw new Error('Solo l’Amministratore può importare i risultati.');
+  if(RIS_IMPORT.stop) throw risImportAnnullato();
+}
+
+function risChiediIdentita(caso){
+  risVerificaImportConsentito();
+  const form = document.getElementById('risIdentita');
+  const conferma = document.getElementById('btnRisConfermaIdentita');
+  const annulla = document.getElementById('btnRisAnnullaIdentita');
+  document.getElementById('risIdentitaInfo').textContent =
+    `${caso.nome} · anno ${caso.anno} · ${caso.societa || 'Società non indicata nel PDF'}. ` +
+    (caso.candidati.length ? 'Esistono risultati con lo stesso nome e anno di nascita: potrebbero appartenere a un omonimo.' : 'La società manca: conferma prima di creare una nuova scheda atleta.');
+  const opzioni = [
+    ...caso.candidati.map(a=>({
+      id:a.id, testo:`Stesso atleta di ${a.nome} (${a.anno}) — ${a.societa.map(s=>s || 'società non indicata').join(' / ')}. Associa i risultati a questa scheda.`
+    })),
+    { id:caso.nuovoId, testo:caso.candidati.length
+      ? `Atleta distinto — crea una scheda separata per ${caso.societa || 'società non indicata'}.`
+      : 'Confermo un nuovo atleta con società non indicata.' }
+  ];
+  const scelte = document.getElementById('risIdentitaScelte');
+  scelte.innerHTML = opzioni.map((op,i)=>`<label><input type="radio" name="risIdentitaScelta" value="${i}" required><span>${escapeHtml(op.testo)}</span></label>`).join('');
+  conferma.disabled = true;
+  document.getElementById('risImportModal').classList.add('show');
+  form.hidden = false;
+  document.getElementById('risIdentitaTitle').focus();
+  return new Promise(resolve=>{
+    const completa = id=>{
+      form.removeEventListener('submit', invia);
+      form.removeEventListener('change', cambia);
+      annulla.removeEventListener('click', cancella);
+      RIS_IMPORT.annullaIdentita = null;
+      form.hidden = true;
+      scelte.innerHTML = '';
+      resolve(id);
+    };
+    const cambia = ()=>{ conferma.disabled = !form.querySelector('input:checked'); };
+    const cancella = ()=>completa(null);
+    const invia = e=>{
+      e.preventDefault();
+      const scelta = form.querySelector('input:checked');
+      if(!scelta) return;
+      if(!UNLOCKED || RIS_IMPORT.stop){ cancella(); return; }
+      completa(opzioni[Number(scelta.value)].id);
+    };
+    form.addEventListener('submit', invia);
+    form.addEventListener('change', cambia);
+    annulla.addEventListener('click', cancella);
+    RIS_IMPORT.annullaIdentita = cancella;
+  });
+}
+
+// info: { gk, file, url, titolo, testo, dataFallback }
+async function risImportaBlob(blob, info){
+  risVerificaImportConsentito();
+  const ana = risAnalizzaPagine(await risLeggiPagine(blob), {
+    vascaPredefinita: parseInt(document.getElementById('risVascaDef').value, 10),
+    dataFallback: info.dataFallback || ''
+  });
+  if(!ana.prestazioni.length){
+    throw new Error(ana.senzaTempo ? 'nessun tempo valido nel PDF' : 'formato non riconosciuto: nessun risultato individuale trovato');
+  }
+  risVerificaImportConsentito();
+  const risolte = await risRisolviAtleti(ana.prestazioni, RIS.prestazioni.concat(RIS.identita || []), risChiediIdentita, info.gk);
+  const { nuove, duplicati } = risFiltraNuove(risolte, RIS.chiavi);
+  const gara = {
+    file: info.file, url: info.url || '',
+    titolo: info.titolo || ana.titolo || info.file, titoloPdf: ana.titolo || '', testo: info.testo || '',
+    luogo: ana.luogo || '', data: ana.data || info.dataFallback || '', vasca: ana.vasca || 0,
+    n: nuove.length, duplicati: duplicati + ana.duplicatiInterni, senzaTempo: ana.senzaTempo,
+    eventi: ana.eventi.length, importatoIl: new Date().toISOString(), operatore: getOperatore(),
+    identita: risAssociazioni(risolte)
+  };
+  const testo = risImpacchetta(nuove);
+  risVerificaImportConsentito();
+  await RIS_REF.update({ ['gare/'+info.gk]: gara, ['perf/'+info.gk]: testo, _pin: OPERATOR_PIN });
+  RIS.gare = { ...(RIS.gare || {}), [info.gk]: gara };
+  RIS.perf.set(info.gk, { i: gara.importatoIl, lista: risSpacchetta(testo, info.gk) });
+  risCacheScrivi(new Map([[info.gk, { i: gara.importatoIl, s: testo }]]), []);
+  risRicostruisci();
+  return { n: nuove.length, duplicati: gara.duplicati, senzaTempo: ana.senzaTempo, titolo: gara.titolo };
+}
+
+// PDF dei risultati pubblicati negli articoli Federnuoto FVG (Nuoto, Salvamento, Propaganda; esclusi i Master)
+async function risElencoFedernuoto(mesi){
+  const dal = risMesiFa(mesi);
+  const pubblicatiDopo = new Date(dal);
+  pubblicatiDopo.setMonth(pubblicatiDopo.getMonth()-3);
+  const posts = [];
+  for(let page=1; ; page++){
+    const url = `${FED_SITE}/wp-json/wp/v2/posts?categories=9,11,16&after=${risIsoDaDate(pubblicatiDopo)}T00:00:00&per_page=100&page=${page}&_fields=id,slug,link,title,categories,date,content`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const lista = await res.json();
+    if(!Array.isArray(lista)) throw new Error('Risposta non valida dal sito Federnuoto FVG.');
+    posts.push(...lista);
+    const totali = parseInt(res.headers.get('X-WP-TotalPages'), 10);
+    if(totali ? page >= totali : lista.length < 100) break;
+  }
+  const parser = new DOMParser();
+  const perFile = new Map();
+  posts.forEach(p=>{
+    if((p.categories||[]).includes(15)) return;
+    const data = fedDataDaSlug(p.slug || '') || new Date(p.date);
+    if(!(data >= dal)) return;
+    const titolo = parser.parseFromString((p.title && p.title.rendered) || '', 'text/html').body.textContent.trim();
+    const html = p.content && typeof p.content.rendered === 'string' ? p.content.rendered : '';
+    parser.parseFromString(html, 'text/html').querySelectorAll('a[href]').forEach(a=>{
+      let url;
+      try{ url = new URL(a.getAttribute('href'), FED_SITE); }catch(err){ return; }
+      url.search = ''; url.hash = '';
+      if(!/\.pdf$/i.test(url.pathname)) return;
+      let file;
+      try{ file = fedFilePdf(url.href); }catch(err){ return; }
+      const nomeFile = file.split('/').pop();
+      const testo = a.textContent.replace(/\s+/g,' ').trim();
+      if(!risLinkRisultati(testo, nomeFile) || perFile.has(file)) return;
+      perFile.set(file, {
+        titolo, data, link:p.link, url:url.href, testo, nomeFile, file,
+        dataIso: risIsoDaDate(data), gk: 'g'+risHash(file), sel:false, stato:'', classe:''
+      });
+    });
+  });
+  return Array.from(perFile.values()).sort((a,b)=>b.data-a.data || a.nomeFile.localeCompare(b.nomeFile));
+}
+
+function risSetStatus(msg, isError){
+  const el = document.getElementById('risStatus');
+  el.innerHTML = msg;
+  el.classList.toggle('error', !!isError);
+}
+function risInArchivio(gk){ return !!(RIS.gare && RIS.gare[gk]); }
+
+function risAggiornaAzioni(){
+  const candidati = RIS_IMPORT.elenco.filter(it=>!risInArchivio(it.gk));
+  const scelti = candidati.filter(it=>it.sel).length;
+  document.getElementById('risAzioni').hidden = !RIS_IMPORT.elenco.length && !RIS_IMPORT.inCorso;
+  const tutti = document.getElementById('risSelTutti');
+  tutti.checked = candidati.length > 0 && scelti === candidati.length;
+  tutti.indeterminate = scelti > 0 && scelti < candidati.length;
+  document.getElementById('btnRisImporta').textContent = `Importa selezionati (${scelti})`;
+  document.getElementById('btnRisImporta').disabled = RIS_IMPORT.inCorso || !scelti;
+}
+
+function risRenderElenco(){
+  const lista = document.getElementById('risLista');
+  lista.innerHTML = RIS_IMPORT.elenco.map((it,i)=>{
+    const g = RIS.gare && RIS.gare[it.gk];
+    const stato = it.stato || (g ? `in archivio (${g.n} risultati)` : '');
+    const classe = it.classe || (g ? 'ok' : '');
+    return `<div class="fed-item">
+      <label class="ris-item">
+        <input type="checkbox" data-idx="${i}"${g || RIS_IMPORT.inCorso ? ' disabled' : ''}${it.sel && !g ? ' checked' : ''}>
+        <span>
+          <span class="fed-item-title">${escapeHtml(it.titolo)}</span>
+          <span class="fed-item-meta">${it.data.toLocaleDateString('it-IT')} · ${escapeHtml(it.testo || 'PDF')} · <a href="${escapeHtml(it.url)}" target="_blank" rel="noopener">${escapeHtml(it.nomeFile)}</a></span>
+        </span>
+      </label>
+      <span class="ris-item-stato ${classe}">${escapeHtml(stato)}</span>
+    </div>`;
+  }).join('');
+  lista.querySelectorAll('input[data-idx]').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      RIS_IMPORT.elenco[parseInt(cb.dataset.idx,10)].sel = cb.checked;
+      risAggiornaAzioni();
+    });
+  });
+  risAggiornaAzioni();
+}
+
+function risRenderArchivio(){
+  const el = document.getElementById('risArchivio');
+  const gare = RIS.gare ? Object.entries(RIS.gare) : [];
+  if(!gare.length){ el.innerHTML = '<p>Nessuna gara in archivio.</p>'; return; }
+  gare.sort((a,b)=>String(b[1].data||'').localeCompare(String(a[1].data||'')) ||
+    String(b[1].importatoIl||'').localeCompare(String(a[1].importatoIl||'')));
+  el.innerHTML = `<p class="ris-nota">${escapeHtml(risNotaArchivio())}</p>` + gare.map(([gk,g])=>`<div class="fed-item">
+      <div>
+        <div class="fed-item-title">${escapeHtml(g.titolo || g.file || gk)}</div>
+        <div class="fed-item-meta">${risDataIt(g.data)}${g.vasca ? ` · vasca ${g.vasca} m` : ''} · ${g.n||0} risultati${g.duplicati ? ` (+${g.duplicati} già presenti)` : ''} · importata il ${g.importatoIl ? new Date(g.importatoIl).toLocaleDateString('it-IT') : '—'} da ${escapeHtml(g.operatore || '—')}</div>
+      </div>
+      <button class="btn small danger" data-gk="${escapeHtml(gk)}" title="Elimina dall'archivio"${RIS_IMPORT.inCorso ? ' disabled' : ''}>🗑️</button>
+    </div>`).join('');
+  el.querySelectorAll('button[data-gk]').forEach(btn=>btn.addEventListener('click', ()=>risEliminaGara(btn.dataset.gk)));
+}
+
+async function risEliminaGara(gk){
+  if(!UNLOCKED || RIS_IMPORT.inCorso) return;
+  const g = RIS.gare && RIS.gare[gk];
+  if(!g) return;
+  if(!confirm(`Eliminare dall'archivio "${g.titolo || g.file}" e i suoi ${g.n||0} risultati?\n\n` +
+      'I risultati che altre gare avevano scartato perché già presenti in questa non vengono ripristinati: per recuperarli elimina e reimporta anche quelle gare.')) return;
+  try{
+    await RIS_REF.update({ ['gare/'+gk]: null, ['perf/'+gk]: null, _pin: OPERATOR_PIN });
+    const gare = { ...RIS.gare };
+    delete gare[gk];
+    RIS.gare = gare;
+    RIS.perf.delete(gk);
+    risCacheScrivi(new Map(), [gk]);
+    risRicostruisci();
+    pushAuditLog({ tipo:'elimina_risultati', dettaglio:`Eliminata dall'archivio risultati: ${g.titolo || g.file} (${g.n||0} risultati)`, timestamp:new Date().toISOString(), operatore:getOperatore() });
+    risSetStatus(`Eliminata "${escapeHtml(g.titolo || g.file)}".`);
+  }catch(err){
+    console.error(err);
+    risSetStatus('Eliminazione non riuscita: '+escapeHtml(err.message)+' (regole del database pubblicate?)', true);
+  }
+  risRenderElenco();
+  risRenderArchivio();
+}
+
+function risBloccaImport(attivo){
+  RIS_IMPORT.inCorso = attivo;
+  ['btnRisCerca','btnRisManuale','risPeriodo','risVascaDef','risSelTutti'].forEach(id=>{
+    document.getElementById(id).disabled = attivo;
+  });
+  const stop = document.getElementById('btnRisStop');
+  stop.style.display = attivo ? 'inline-flex' : 'none';
+  stop.disabled = false;
+  stop.textContent = 'Interrompi';
+  if(!attivo) document.getElementById('risProgress').hidden = true;
+  risRenderElenco();
+  risRenderArchivio();
+}
+
+async function risEseguiImport(lavori, descrivi){
+  // lavori: [{ etichetta, esegui:()=>Promise<esito>, item? }]
+  const prog = document.getElementById('risProgress');
+  prog.max = lavori.length; prog.value = 0; prog.hidden = false;
+  risBloccaImport(true);
+  let ok = 0, errori = 0, nuovi = 0, doppi = 0, interrotto = false;
+  const importate = [];
+  try{
+    risSetStatus('Lettura dell’archivio…');
+    await risCaricaArchivio();
+    for(const lavoro of lavori){
+      if(RIS_IMPORT.stop){ interrotto = true; break; }
+      risSetStatus(`Importazione ${prog.value+1} di ${lavori.length}: ${escapeHtml(lavoro.etichetta)}…`);
+      if(lavoro.item){ lavoro.item.stato = 'in corso…'; lavoro.item.classe = ''; risRenderElenco(); }
+      try{
+        const esito = await lavoro.esegui();
+        ok++; nuovi += esito.n; doppi += esito.duplicati;
+        importate.push(`${esito.titolo} (${esito.n})`);
+        if(lavoro.item){
+          lavoro.item.sel = false;
+          lavoro.item.stato = `✓ ${esito.n} nuovi risultati${esito.duplicati ? `, ${esito.duplicati} già presenti` : ''}`;
+          lavoro.item.classe = 'ok';
+        }
+      }catch(err){
+        if(err.code === 'RIS_IMPORT_ANNULLATO'){
+          interrotto = true;
+          if(lavoro.item){ lavoro.item.stato = 'annullato: PDF non salvato'; lavoro.item.classe = ''; }
+          else descrivi.push(`${lavoro.etichetta}: annullato, PDF non salvato.`);
+          break;
+        }
+        console.error('Import risultati non riuscito:', lavoro.etichetta, err);
+        errori++;
+        if(lavoro.item){ lavoro.item.stato = '✗ '+err.message; lavoro.item.classe = 'err'; }
+        else descrivi.push(`✗ ${lavoro.etichetta}: ${err.message}`);
+      }
+      prog.value++;
+      if(lavoro.item) risRenderElenco();
+    }
+  }catch(err){
+    console.error(err);
+    risSetStatus('Archivio non leggibile: '+escapeHtml(err.message), true);
+    risBloccaImport(false);
+    return;
+  }
+  RIS_IMPORT.stop = false;
+  risBloccaImport(false);
+  if(ok) pushAuditLog({ tipo:'importa_risultati', dettaglio:`Importati risultati: ${importate.join('; ')}`, timestamp:new Date().toISOString(), operatore:getOperatore() });
+  const righe = [`${interrotto ? 'Importazione interrotta' : 'Importazione completata'}: ${ok} PDF importat${ok===1?'o':'i'}, ${nuovi} nuovi risultati${doppi ? `, ${doppi} già presenti (non duplicati)` : ''}${errori ? `, ${errori} con errori` : ''}.`]
+    .concat(descrivi).map(escapeHtml);
+  risSetStatus(righe.join('<br>'), errori > 0 && !ok);
+}
+
+async function risCercaFedernuoto(){
+  if(!UNLOCKED || RIS_IMPORT.inCorso) return;
+  const mesi = parseInt(document.getElementById('risPeriodo').value, 10) || 12;
+  RIS_IMPORT.elenco = [];
+  risRenderElenco();
+  document.getElementById('btnRisCerca').disabled = true;
+  risSetStatus(`Ricerca dei PDF dei risultati degli ultimi ${mesi} mesi su Federnuoto FVG…`);
+  try{
+    const [elenco] = await Promise.all([risElencoFedernuoto(mesi), risCaricaArchivio()]);
+    RIS_IMPORT.elenco = elenco;
+    const nuovi = elenco.filter(it=>!risInArchivio(it.gk)).length;
+    const test = new URLSearchParams(window.location.search).has('dataTest') ? ` (data di prova ${risOggi().toLocaleDateString('it-IT')})` : '';
+    risSetStatus(elenco.length
+      ? `Trovati ${elenco.length} PDF di risultati dal ${risMesiFa(mesi).toLocaleDateString('it-IT')}${test}: ${nuovi} da importare, ${elenco.length-nuovi} già in archivio. Seleziona quelli da importare.`
+      : `Nessun PDF di risultati trovato dal ${risMesiFa(mesi).toLocaleDateString('it-IT')}${test}.`);
+  }catch(err){
+    console.error(err);
+    risSetStatus('Impossibile leggere l’elenco da Federnuoto FVG: '+escapeHtml(err.message)+'. Puoi usare "📁 PDF dal computer".', true);
+  }finally{
+    document.getElementById('btnRisCerca').disabled = false;
+    risRenderElenco();
+    risRenderArchivio();
+  }
+}
+
+async function risImportaSelezionati(){
+  if(!UNLOCKED){ alert('Solo l’Amministratore può importare i risultati.'); return; }
+  if(RIS_IMPORT.inCorso) return;
+  const scelti = RIS_IMPORT.elenco.filter(it=>it.sel && !risInArchivio(it.gk));
+  if(!scelti.length) return;
+  await risEseguiImport(scelti.map(it=>({
+    item: it,
+    etichetta: it.nomeFile,
+    esegui: async ()=>{
+      if(risInArchivio(it.gk)) throw new Error('già in archivio');
+      const blob = await fedScaricaPdf(it.url);
+      const titolo = it.testo && !/^risultat[io]?$/i.test(it.testo) && it.testo !== it.titolo ? `${it.titolo} — ${it.testo}` : it.titolo;
+      return risImportaBlob(blob, { gk:it.gk, file:it.file, url:it.url, titolo, testo:it.testo, dataFallback:it.dataIso });
+    }
+  })), []);
+}
+
+async function risImportaManuali(files){
+  if(!UNLOCKED){ alert('Solo l’Amministratore può importare i risultati.'); return; }
+  if(RIS_IMPORT.inCorso || !files.length) return;
+  const note = [];
+  await risEseguiImport(files.map(f=>({
+    etichetta: f.name,
+    esegui: async ()=>{
+      const gk = 'g'+risHash('manuale/'+f.name+'|'+f.size);
+      if(risInArchivio(gk)) throw new Error('questo PDF è già in archivio');
+      const esito = await risImportaBlob(f, { gk, file:'manuale/'+f.name, url:'', titolo:'', testo:f.name, dataFallback:'' });
+      note.push(`✓ ${f.name}: ${esito.n} nuovi risultati${esito.duplicati ? `, ${esito.duplicati} già presenti` : ''}`);
+      return esito;
+    }
+  })), note);
+}
+
+function risApriImport(){
+  if(!UNLOCKED){ alert('Solo l’Amministratore può importare i risultati.'); return; }
+  document.getElementById('risImportModal').classList.add('show');
+  risRenderElenco();
+  risRenderArchivio();
+  if(!RIS_IMPORT.inCorso) risCaricaArchivio().then(()=>{ risRenderElenco(); risRenderArchivio(); }).catch(err=>{
+    console.error(err);
+    risSetStatus('Archivio non leggibile: '+escapeHtml(err.message), true);
+  });
+}
+
+document.getElementById('btnImportaRisultati').addEventListener('click', risApriImport);
+document.getElementById('btnRisCerca').addEventListener('click', risCercaFedernuoto);
+document.getElementById('btnRisImporta').addEventListener('click', risImportaSelezionati);
+document.getElementById('btnRisStop').addEventListener('click', ()=>{
+  RIS_IMPORT.stop = true;
+  if(RIS_IMPORT.annullaIdentita) RIS_IMPORT.annullaIdentita();
+  const stop = document.getElementById('btnRisStop');
+  stop.disabled = true;
+  stop.textContent = 'Interruzione dopo il PDF in corso…';
+});
+document.getElementById('risSelTutti').addEventListener('change', e=>{
+  RIS_IMPORT.elenco.forEach(it=>{ if(!risInArchivio(it.gk)) it.sel = e.target.checked; });
+  risRenderElenco();
+});
+document.getElementById('btnRisManuale').addEventListener('click', ()=>document.getElementById('risPdfInput').click());
+document.getElementById('risPdfInput').addEventListener('change', e=>{
+  const files = Array.from(e.target.files || []);
+  e.target.value = '';
+  risImportaManuali(files);
+});
+document.getElementById('risImportModalClose').addEventListener('click', ()=>{
+  if(RIS_IMPORT.annullaIdentita) RIS_IMPORT.annullaIdentita();
+  document.getElementById('risImportModal').classList.remove('show');
+});
+document.getElementById('risImportModal').addEventListener('click', e=>{
+  if(e.target.id === 'risImportModal'){
+    if(RIS_IMPORT.annullaIdentita) RIS_IMPORT.annullaIdentita();
+    e.target.classList.remove('show');
+  }
+});
+
+/* ---------- Record personali ---------- */
+function risRenderSuggerimenti(){
+  const box = document.getElementById('recordSuggest');
+  const q = document.getElementById('recordCerca').value;
+  const trovati = q.trim() ? risCercaAtleti(RIS.indice, q, 30) : [];
+  if(q.trim() && !trovati.length && RIS.prestazioni.length){
+    box.innerHTML = '<p class="ris-nota">Nessun atleta trovato in archivio.</p>';
+    return;
+  }
+  box.innerHTML = trovati.map(a=>`<button type="button" data-id="${escapeHtml(a.id)}">${escapeHtml(a.nome)} <span>${a.anno} · ${escapeHtml(Array.from(a.societa.values()).join(' · '))} · ${a.n} risultat${a.n===1?'o':'i'}</span></button>`).join('');
+  box.querySelectorAll('button[data-id]').forEach(b=>b.addEventListener('click', ()=>risScegliAtleta(b.dataset.id)));
+}
+
+function risScegliAtleta(id){
+  RIS_ATLETA = id;
+  localStorage.setItem('ris_atleta', id);
+  document.getElementById('recordCerca').value = '';
+  document.getElementById('recordSuggest').innerHTML = '';
+  risRenderRecord();
+}
+
+function risRenderRecord(){
+  const body = document.getElementById('recordBody');
+  const status = document.getElementById('recordStatus');
+  status.classList.remove('error');
+  if(!RIS.prestazioni.length){ status.textContent = RIS_ARCHIVIO_VUOTO; body.innerHTML = ''; return; }
+  status.textContent = risNotaArchivio();
+  const torna = RIS_DA_CLASSIFICA ? '<button class="btn small ghost" id="btnTornaClassifica" style="margin-bottom:10px;">← Torna alla classifica</button>' : '';
+  const rec = RIS_ATLETA ? risRecordAtleta(RIS.prestazioni, RIS_ATLETA) : null;
+  if(!rec){
+    body.innerHTML = torna + '<p class="ris-nota">Cerca un atleta per cognome e/o nome per vedere i suoi migliori tempi per specialità.</p>';
+  } else {
+    let html = torna + `<div class="ris-atleta-head">
+        <div class="ris-atleta-nome">${escapeHtml(rec.nome)}<span>${rec.anno}</span></div>
+        <div class="ris-atleta-meta">${escapeHtml(rec.societa.join(' · ') || '—')}${rec.societa.length > 1 ? ' — società associate dall’Amministratore' : ''} · ${rec.totale} risultat${rec.totale===1?'o':'i'} in archivio</div>
+      </div>
+      <p class="ris-nota">Miglior tempo in archivio per ogni specialità. Apri una specialità per vedere tutti i tempi (il migliore è evidenziato).</p>`;
+    let vasca = null;
+    rec.specialita.forEach(g=>{
+      if(g.vasca !== vasca){ vasca = g.vasca; html += `<h3>Vasca ${vasca} m</h3>`; }
+      const b = g.migliore;
+      html += `<details class="ris-spec">
+        <summary>
+          <span class="ris-spec-nome">${g.dist} ${escapeHtml(g.stile)}</span>
+          <span class="ris-tempo">${risFormattaTempo(b.cs)}</span>
+          <span class="ris-spec-meta">${risDataIt(b.data)} · ${escapeHtml(risNomeGara(b.gk))}</span>
+          <span class="ris-count">${g.storico.length} temp${g.storico.length===1?'o':'i'}</span>
+        </summary>
+        <div class="ris-table-wrap"><table class="ris-table">
+          <thead><tr><th class="num">Data</th><th class="t">Tempo</th><th>Categoria</th><th>Società</th><th>Gara</th></tr></thead>
+          <tbody>${g.storico.map(p=>`<tr${p === b ? ' class="best"' : ''}>
+            <td class="num">${risDataIt(p.data)}</td><td class="t">${risFormattaTempo(p.cs)}</td>
+            <td>${escapeHtml(p.cat || '—')}</td><td>${escapeHtml(p.societa)}</td><td class="dim">${escapeHtml(risNomeGara(p.gk))}</td>
+          </tr>`).join('')}</tbody>
+        </table></div>
+      </details>`;
+    });
+    body.innerHTML = html;
+  }
+  const btnTorna = document.getElementById('btnTornaClassifica');
+  if(btnTorna) btnTorna.addEventListener('click', ()=>{
+    document.getElementById('recordModal').classList.remove('show');
+    risApriClassifiche();
+  });
+}
+
+async function risApriRecord(id, daClassifica){
+  RIS_DA_CLASSIFICA = !!daClassifica;
+  if(id){ RIS_ATLETA = id; localStorage.setItem('ris_atleta', id); }
+  document.getElementById('recordModal').classList.add('show');
+  document.getElementById('recordCerca').value = '';
+  document.getElementById('recordSuggest').innerHTML = '';
+  const status = document.getElementById('recordStatus');
+  if(RIS.gare) risRenderRecord();
+  else { status.textContent = 'Caricamento archivio risultati…'; document.getElementById('recordBody').innerHTML = ''; }
+  if(!id) document.getElementById('recordCerca').focus();
+  try{
+    await risCaricaArchivio();
+    risRenderRecord();
+  }catch(err){
+    console.error(err);
+    status.textContent = 'Archivio risultati non leggibile: '+err.message;
+    status.classList.add('error');
+  }
+}
+
+document.getElementById('btnRecord').addEventListener('click', ()=>risApriRecord(null, false));
+document.getElementById('recordCerca').addEventListener('input', risRenderSuggerimenti);
+document.getElementById('recordCerca').addEventListener('keydown', e=>{
+  if(e.key !== 'Enter') return;
+  const trovati = risCercaAtleti(RIS.indice, e.target.value, 2);
+  if(trovati.length === 1) risScegliAtleta(trovati[0].id);
+});
+document.getElementById('recordModalClose').addEventListener('click', ()=>{
+  document.getElementById('recordModal').classList.remove('show');
+});
+document.getElementById('recordModal').addEventListener('click', e=>{
+  if(e.target.id === 'recordModal') e.target.classList.remove('show');
+});
+
+/* ---------- Classifiche per specialità e categoria ---------- */
+const RIS_SESSI = { F:'Femmine', M:'Maschi', X:'Non indicato' };
+function risFiltriSalvati(){
+  try{ return JSON.parse(localStorage.getItem('ris_cls_filtri') || '{}') || {}; }catch(err){ return {}; }
+}
+function risImpostaOpzioni(id, opzioni, preferito){
+  const sel = document.getElementById(id);
+  const valori = opzioni.map(o=>o.v);
+  const valore = valori.includes(preferito) ? preferito : (valori.includes(sel.value) ? sel.value : (valori[0] || ''));
+  sel.innerHTML = opzioni.map(o=>`<option value="${escapeHtml(o.v)}">${escapeHtml(o.t)}</option>`).join('');
+  sel.value = valore;
+}
+function risPeriodo(valore){
+  if(valore === '12' || valore === '6') return { dal: risIsoDaDate(risMesiFa(parseInt(valore,10))), al:'' };
+  const m = /^a(\d{4})$/.exec(valore || '');
+  return m ? { dal:`${m[1]}-01-01`, al:`${m[1]}-12-31` } : { dal:'', al:'' };
+}
+
+function risAggiornaFiltri(){
+  const salvati = risFiltriSalvati();
+  risImpostaOpzioni('clsSpec', RIS.spec.map(s=>({ v:`${s.dist}|${s.stile}`, t:`${s.dist} ${s.stile}` })), salvati.spec || '50|Stile libero');
+  const [dist, stile] = document.getElementById('clsSpec').value.split('|');
+  const diSpec = RIS.prestazioni.filter(p=>p.dist === +dist && p.stile === stile);
+  const sessoDi = p=>risSessoDi(p, RIS.sessi);
+  const sessi = Array.from(new Set(diSpec.map(sessoDi))).sort((a,b)=>'FMX'.indexOf(a)-'FMX'.indexOf(b));
+  risImpostaOpzioni('clsSesso', sessi.map(s=>({ v:s, t:RIS_SESSI[s] || s })), salvati.sesso);
+  const sesso = document.getElementById('clsSesso').value;
+  const vasche = Array.from(new Set(diSpec.filter(p=>sessoDi(p) === sesso).map(p=>p.vasca))).sort((a,b)=>a-b);
+  risImpostaOpzioni('clsVasca', vasche.map(v=>({ v:String(v), t:`${v} m` })), salvati.vasca);
+  const base = diSpec.filter(p=>sessoDi(p) === sesso && p.vasca === +document.getElementById('clsVasca').value);
+  const categorie = Array.from(new Set(base.map(p=>p.cat).filter(Boolean))).sort();
+  risImpostaOpzioni('clsCat', [{ v:'', t:'Tutte' }].concat(categorie.map(c=>({ v:c, t:c }))), salvati.cat);
+  const anni = Array.from(new Set(base.map(p=>p.anno))).sort((a,b)=>b-a);
+  risImpostaOpzioni('clsAnno', [{ v:'', t:'Tutti' }].concat(anni.map(a=>({ v:String(a), t:String(a) }))), salvati.anno);
+  const anniGara = Array.from(new Set(RIS.prestazioni.map(p=>(p.data||'').slice(0,4)).filter(Boolean))).sort().reverse();
+  risImpostaOpzioni('clsPeriodo', [{ v:'', t:'Tutto l’archivio' }, { v:'12', t:'Ultimi 12 mesi' }, { v:'6', t:'Ultimi 6 mesi' }]
+    .concat(anniGara.map(a=>({ v:'a'+a, t:'Anno '+a }))), salvati.periodo);
+}
+
+function risRenderClassifica(){
+  const status = document.getElementById('clsStatus');
+  const body = document.getElementById('clsBody');
+  status.classList.remove('error');
+  if(!RIS.prestazioni.length){ status.textContent = RIS_ARCHIVIO_VUOTO; body.innerHTML = ''; return; }
+  const v = id=>document.getElementById(id).value;
+  localStorage.setItem('ris_cls_filtri', JSON.stringify({ spec:v('clsSpec'), sesso:v('clsSesso'), vasca:v('clsVasca'), cat:v('clsCat'), anno:v('clsAnno'), periodo:v('clsPeriodo') }));
+  const [dist, stile] = v('clsSpec').split('|');
+  const periodo = risPeriodo(v('clsPeriodo'));
+  const righe = risClassifica(RIS.prestazioni, {
+    dist:+dist, stile, sesso:v('clsSesso'), vasca:+v('clsVasca'), sessi:RIS.sessi,
+    cat:v('clsCat'), anno:v('clsAnno') ? +v('clsAnno') : 0, dal:periodo.dal, al:periodo.al
+  });
+  const conCat = !v('clsCat');
+  const sel = id=>{ const s = document.getElementById(id); return s.options[s.selectedIndex] ? s.options[s.selectedIndex].text : ''; };
+  status.textContent = `Classifica dei risultati importati: ${dist} ${stile} · ${sel('clsSesso')} · vasca ${v('clsVasca')} m · ${v('clsCat') || 'tutte le categorie'}${v('clsAnno') ? ' · nati nel '+v('clsAnno') : ''} · ${sel('clsPeriodo')}: ${righe.length} atlet${righe.length===1?'a':'i'} (miglior tempo di ciascuno). ${risNotaArchivio()}`;
+  if(!righe.length){ body.innerHTML = '<p class="ris-nota">Nessun risultato con questi filtri.</p>'; return; }
+  body.innerHTML = `<div class="ris-table-wrap"><table class="ris-table">
+    <thead><tr><th class="num">Pos.</th><th>Atleta</th><th class="num">Anno</th>${conCat ? '<th>Categoria</th>' : ''}<th>Società</th><th class="t">Tempo</th><th class="num">Data</th><th>Gara</th></tr></thead>
+    <tbody>${righe.map(r=>`<tr>
+      <td class="num">${r.pos}${r.exAequo ? '<span class="ris-ex">ex aequo</span>' : ''}</td>
+      <td><button type="button" class="ris-link" data-id="${escapeHtml(risIdAtleta(r.p))}" title="Record personali">${escapeHtml(r.p.nome)}</button></td>
+      <td class="num">${r.p.anno}</td>${conCat ? `<td>${escapeHtml(r.p.cat || '—')}</td>` : ''}
+      <td>${escapeHtml(r.p.societa)}</td><td class="t">${risFormattaTempo(r.p.cs)}</td>
+      <td class="num">${risDataIt(r.p.data)}</td><td class="dim">${escapeHtml(risNomeGara(r.p.gk))}</td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+  body.querySelectorAll('button.ris-link').forEach(b=>b.addEventListener('click', ()=>{
+    document.getElementById('classificheModal').classList.remove('show');
+    risApriRecord(b.dataset.id, true);
+  }));
+}
+
+async function risApriClassifiche(){
+  document.getElementById('classificheModal').classList.add('show');
+  const status = document.getElementById('clsStatus');
+  if(RIS.gare){ risAggiornaFiltri(); risRenderClassifica(); }
+  else { status.textContent = 'Caricamento archivio risultati…'; document.getElementById('clsBody').innerHTML = ''; }
+  try{
+    await risCaricaArchivio();
+    risAggiornaFiltri();
+    risRenderClassifica();
+  }catch(err){
+    console.error(err);
+    status.textContent = 'Archivio risultati non leggibile: '+err.message;
+    status.classList.add('error');
+  }
+}
+
+document.getElementById('btnClassifiche').addEventListener('click', risApriClassifiche);
+['clsSpec','clsSesso','clsVasca','clsCat','clsAnno','clsPeriodo'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', ()=>{
+    // salvo subito la scelta: risAggiornaFiltri la usa come preferita per i filtri dipendenti
+    const s = risFiltriSalvati();
+    s[{ clsSpec:'spec', clsSesso:'sesso', clsVasca:'vasca', clsCat:'cat', clsAnno:'anno', clsPeriodo:'periodo' }[id]] = document.getElementById(id).value;
+    localStorage.setItem('ris_cls_filtri', JSON.stringify(s));
+    risAggiornaFiltri();
+    risRenderClassifica();
+  });
+});
+document.getElementById('classificheModalClose').addEventListener('click', ()=>{
+  document.getElementById('classificheModal').classList.remove('show');
+});
+document.getElementById('classificheModal').addEventListener('click', e=>{
+  if(e.target.id === 'classificheModal') e.target.classList.remove('show');
 });
 
 /* ============================================================
