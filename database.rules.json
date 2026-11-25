@@ -23,6 +23,10 @@
     "audit_log": {
       ".read": true,
       ".write": true
+    },
+    "risultati_archivio": {
+      ".read": true,
+      ".write": "newData.child('_pin').val() === '556699'"
     }
   }
 }
