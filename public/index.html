@@ -271,7 +271,7 @@ header.app{
   display:flex; gap:8px; flex-direction:column; align-items:stretch;
 }
 .toolbar .btn{justify-content:flex-start; text-align:left;}
-.app-menu{position:static;}
+.app-menu{position:static; flex:none; margin-left:auto;}
 .app-menu summary{list-style:none;}
 .app-menu summary::-webkit-details-marker{display:none;}
 .app-menu:not([open]) .app-menu-panel{display:none;}
@@ -308,6 +308,7 @@ input[type=file]{display:none;}
 
 .file-badge{
   display:inline-flex; align-items:center; gap:10px;
+  flex:1 1 200px;
   max-width:100%; min-width:0; overflow-wrap:anywhere; box-sizing:border-box;
   font-size:13.5px; font-weight:700;
   padding:10px 16px; border-radius:10px;
@@ -317,6 +318,12 @@ input[type=file]{display:none;}
 .file-badge .icon{font-size:18px; line-height:1;}
 .file-badge:not(.loaded) .icon{animation:badgePulse 1.6s ease-in-out infinite;}
 .file-badge.loaded{background:#E3F6ED; color:#146C43; border-color:#9FE0BE;}
+@media (max-width:600px){
+  .brand-title{flex:1 0 100%; min-width:0;}
+  .header-logo{height:clamp(28px,9vw,44px);}
+  .brand h1{font-size:clamp(18px,5vw,30px);}
+  .file-badge{flex:1 1 0;}
+}
 @keyframes badgePulse{0%,100%{opacity:1;}50%{opacity:.45;}}
 
 .settings-panel{
@@ -460,7 +467,7 @@ tr.batteria-row.current td:first-child::before{
 }
 tr.atleti-detail td{padding:0 8px 14px 8px; border-bottom:1px solid rgba(30,74,102,.35);}
 table.atleti-detail-table{
-  width:100%; border-collapse:collapse; font-size:12.5px;
+  width:100%; table-layout:fixed; border-collapse:collapse; font-size:12.5px;
   background:var(--navy-panel-2); border-radius:8px; overflow:hidden;
 }
 table.atleti-detail-table th{
@@ -469,16 +476,27 @@ table.atleti-detail-table th{
   background:var(--navy-panel);
 }
 table.atleti-detail-table th.num, table.atleti-detail-table td.num{text-align:center; width:34px;}
-table.atleti-detail-table th.anno, table.atleti-detail-table td.anno{text-align:center; white-space:nowrap;}
-table.atleti-detail-table th.t, table.atleti-detail-table td.t{text-align:right; width:80px;}
+table.atleti-detail-table th.anno, table.atleti-detail-table td.anno{text-align:center; white-space:nowrap; width:56px;}
+table.atleti-detail-table th.t, table.atleti-detail-table td.t{text-align:right; width:100px;}
 table.atleti-detail-table td{padding:5px 10px; border-bottom:1px solid var(--line); color:var(--text);}
 table.atleti-detail-table tr:last-child td{border-bottom:none;}
 table.atleti-detail-table tr:nth-child(even) td{background:var(--navy-panel);}
 table.atleti-detail-table td.num{font-family:var(--mono); color:var(--text-faint);}
 table.atleti-detail-table td.nome{font-weight:600;}
+table.atleti-detail-table td.nome, table.atleti-detail-table td.societa{overflow-wrap:anywhere;}
 table.atleti-detail-table td.societa{color:var(--text-dim);}
 table.atleti-detail-table td.t{font-family:var(--mono); font-weight:700; color:var(--water-bright); white-space:nowrap;}
 table.atleti-detail-table td.t.no-time{color:var(--text-faint); font-weight:500; font-style:italic; font-family:var(--sans);}
+@media (max-width:600px){
+  .evento{padding-left:8px; padding-right:8px;}
+  table.batterie th, table.batterie td{padding-left:4px; padding-right:4px;}
+  .orario-input{width:90px; min-width:90px; padding-left:2px; padding-right:2px;}
+  tr.atleti-detail > td{padding-left:0; padding-right:0;}
+  table.atleti-detail-table th, table.atleti-detail-table td{padding-left:3px; padding-right:3px;}
+  table.atleti-detail-table th.num, table.atleti-detail-table td.num{width:22px;}
+  table.atleti-detail-table th.anno, table.atleti-detail-table td.anno{width:39px;}
+  table.atleti-detail-table th.t, table.atleti-detail-table td.t{width:86px;}
+}
 
 /* Atleti monitorati */
 .monitor-search{position:relative; max-width:420px;}
