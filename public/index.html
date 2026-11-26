@@ -706,6 +706,7 @@ footer.hint{
       <p>L'archivio dei risultati raccoglie i tempi delle gare già disputate (PDF dei "Risultati" pubblicati su Federnuoto FVG) ed è lo stesso per tutti gli utenti e tutte le sessioni. Un risultato già presente non viene mai duplicato, anche se compare in più PDF.</p>
       <p><b>🏅 Record personali</b>: cerca un atleta per cognome e/o nome; per ogni vasca (25 m / 50 m) e specialità vedi il suo miglior tempo in archivio, con data e gara. Apri una specialità per vedere tutti i suoi tempi. Gli atleti sono distinti per nome, anno di nascita e società. In caso di omonimi, cambio società o società mancante, l'Amministratore conferma l'identità prima di salvare il PDF: può mantenere gli atleti separati, associare esplicitamente i risultati a un atleta già presente oppure annullare. La scelta viene conservata nell'archivio condiviso.</p>
       <p><b>🏆 Classifiche</b>: scegli specialità, sesso, vasca, categoria, anno di nascita e periodo. Per ogni atleta conta il miglior tempo; a parità di tempo la posizione è “ex aequo”. Clicca il nome di un atleta per aprire i suoi record personali.</p>
+      <p>In entrambe le finestre, <b>Pulisci ricerca</b> azzera la ricerca corrente senza cancellare i risultati dall'archivio.</p>
       <p><b>📊 Importa risultati</b> (solo Amministratore): cerca su Federnuoto FVG i PDF dei risultati del periodo scelto (gare Master escluse), seleziona quelli da importare e premi <b>Importa selezionati</b>; in alternativa usa <b>📁 PDF dal computer</b>. Le gare già importate sono indicate e non vengono reimportate. Se il PDF non indica la vasca, si usa quella scelta in “Vasca se non indicata”. Una gara importata per errore si può eliminare dall'elenco “Gare in archivio”.</p>
 
       <h3>Le gare passate</h3>
@@ -767,6 +768,7 @@ footer.hint{
       <label class="ris-search">Atleta
         <input type="search" id="recordCerca" placeholder="Cognome e/o nome" autocomplete="off">
       </label>
+      <button type="button" class="btn small ghost" id="btnPulisciRecord">Pulisci ricerca</button>
     </div>
     <div class="modal-body">
       <div class="fed-status" id="recordStatus" role="status"></div>
@@ -789,6 +791,7 @@ footer.hint{
       <label>Categoria <select id="clsCat"></select></label>
       <label>Anno di nascita <select id="clsAnno"></select></label>
       <label>Periodo <select id="clsPeriodo"></select></label>
+      <button type="button" class="btn small ghost" id="btnPulisciClassifiche">Pulisci ricerca</button>
     </div>
     <div class="modal-body">
       <div class="fed-status" id="clsStatus" role="status"></div>
@@ -2860,6 +2863,15 @@ async function risApriRecord(id, daClassifica){
 }
 
 document.getElementById('btnRecord').addEventListener('click', ()=>risApriRecord(null, false));
+document.getElementById('btnPulisciRecord').addEventListener('click', ()=>{
+  RIS_ATLETA = '';
+  localStorage.removeItem('ris_atleta');
+  document.getElementById('recordCerca').value = '';
+  document.getElementById('recordSuggest').innerHTML = '';
+  if(RIS.gare) risRenderRecord();
+  else document.getElementById('recordBody').innerHTML = '';
+  document.getElementById('recordCerca').focus();
+});
 document.getElementById('recordCerca').addEventListener('input', risRenderSuggerimenti);
 document.getElementById('recordCerca').addEventListener('keydown', e=>{
   if(e.key !== 'Enter') return;
@@ -2893,15 +2905,17 @@ function risPeriodo(valore){
 
 function risAggiornaFiltri(){
   const salvati = risFiltriSalvati();
-  risImpostaOpzioni('clsSpec', RIS.spec.map(s=>({ v:`${s.dist}|${s.stile}`, t:`${s.dist} ${s.stile}` })), salvati.spec || '50|Stile libero');
+  const specialita = RIS.spec.map(s=>({ v:`${s.dist}|${s.stile}`, t:`${s.dist} ${s.stile}` }));
+  if(salvati.spec === '') specialita.unshift({ v:'', t:'Seleziona specialità' });
+  risImpostaOpzioni('clsSpec', specialita, salvati.spec === '' ? '' : (salvati.spec || '50|Stile libero'));
   const [dist, stile] = document.getElementById('clsSpec').value.split('|');
   const diSpec = RIS.prestazioni.filter(p=>p.dist === +dist && p.stile === stile);
   const sessoDi = p=>risSessoDi(p, RIS.sessi);
   const sessi = Array.from(new Set(diSpec.map(sessoDi))).sort((a,b)=>'FMX'.indexOf(a)-'FMX'.indexOf(b));
-  risImpostaOpzioni('clsSesso', sessi.map(s=>({ v:s, t:RIS_SESSI[s] || s })), salvati.sesso);
+  risImpostaOpzioni('clsSesso', sessi.length ? sessi.map(s=>({ v:s, t:RIS_SESSI[s] || s })) : [{ v:'', t:'Seleziona sesso' }], salvati.sesso);
   const sesso = document.getElementById('clsSesso').value;
   const vasche = Array.from(new Set(diSpec.filter(p=>sessoDi(p) === sesso).map(p=>p.vasca))).sort((a,b)=>a-b);
-  risImpostaOpzioni('clsVasca', vasche.map(v=>({ v:String(v), t:`${v} m` })), salvati.vasca);
+  risImpostaOpzioni('clsVasca', vasche.length ? vasche.map(v=>({ v:String(v), t:`${v} m` })) : [{ v:'', t:'Seleziona vasca' }], salvati.vasca);
   const base = diSpec.filter(p=>sessoDi(p) === sesso && p.vasca === +document.getElementById('clsVasca').value);
   const categorie = Array.from(new Set(base.map(p=>p.cat).filter(Boolean))).sort();
   risImpostaOpzioni('clsCat', [{ v:'', t:'Tutte' }].concat(categorie.map(c=>({ v:c, t:c }))), salvati.cat);
@@ -2919,6 +2933,11 @@ function risRenderClassifica(){
   if(!RIS.prestazioni.length){ status.textContent = RIS_ARCHIVIO_VUOTO; body.innerHTML = ''; return; }
   const v = id=>document.getElementById(id).value;
   localStorage.setItem('ris_cls_filtri', JSON.stringify({ spec:v('clsSpec'), sesso:v('clsSesso'), vasca:v('clsVasca'), cat:v('clsCat'), anno:v('clsAnno'), periodo:v('clsPeriodo') }));
+  if(!v('clsSpec')){
+    status.textContent = 'Seleziona una specialità per visualizzare la classifica.';
+    body.innerHTML = '';
+    return;
+  }
   const [dist, stile] = v('clsSpec').split('|');
   const periodo = risPeriodo(v('clsPeriodo'));
   const righe = risClassifica(RIS.prestazioni, {
@@ -2962,6 +2981,13 @@ async function risApriClassifiche(){
 }
 
 document.getElementById('btnClassifiche').addEventListener('click', risApriClassifiche);
+document.getElementById('btnPulisciClassifiche').addEventListener('click', ()=>{
+  localStorage.setItem('ris_cls_filtri', JSON.stringify({ spec:'', sesso:'', vasca:'', cat:'', anno:'', periodo:'' }));
+  risAggiornaFiltri();
+  if(RIS.gare) risRenderClassifica();
+  else document.getElementById('clsBody').innerHTML = '';
+  document.getElementById('clsSpec').focus();
+});
 ['clsSpec','clsSesso','clsVasca','clsCat','clsAnno','clsPeriodo'].forEach(id=>{
   document.getElementById(id).addEventListener('change', ()=>{
     // salvo subito la scelta: risAggiornaFiltri la usa come preferita per i filtri dipendenti
