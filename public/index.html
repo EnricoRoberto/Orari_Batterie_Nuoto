@@ -15,18 +15,18 @@
   --navy:#FFFFFF;
   --navy-panel:#FFFFFF;     /* sfondo card/pannelli */
   --navy-panel-2:#F1F5F8;   /* hover pannelli */
-  --line:#D3DFE7;           /* bordi */
+  --line:#B3C5CE;           /* bordi */
   --water:#0B7A94;          /* accento principale (link, editabile) */
   --water-bright:#0A5D75;   /* hover/attivo, piu' scuro per contrasto su bianco */
-  --lane-yellow:#B8790A;    /* accento "corsia", ambra scuro leggibile su bianco */
+  --lane-yellow:#805300;    /* accento "corsia", ambra scuro leggibile su bianco */
   --lane-yellow-dim:#8A6108;
   --lane-dark:#0B2436;      /* fissa, per la riga corsia (indipendente dal tema) */
   --text:#12222C;           /* testo principale, quasi nero */
   --text-dim:#4C6472;
-  --text-faint:#8299A8;
+  --text-faint:#4B606A;
   --danger:#C23B3B;
-  --ok:#1D8F63;
-  --past:#9CACB6;           /* testo gare passate */
+  --ok:#146C43;
+  --past:#465862;           /* testo gare passate */
   --past-bg:#E7ECEF;        /* sfondo riga gare passate */
   --current-bg:#FFF3D6;     /* sfondo gara in corso */
   --radius:10px;
@@ -254,6 +254,8 @@ header.app{
   border-bottom:1px solid var(--line);
   background:linear-gradient(180deg, rgba(11,36,54,.035), transparent);
 }
+.header-region{margin:0 0 12px; color:var(--water-bright); font-size:14px; font-weight:700; line-height:24px; white-space:nowrap; display:flex; align-items:center; justify-content:flex-start; gap:8px;}
+.header-region img{height:24px; width:auto; display:block; flex:none; border-radius:3px;}
 .brand{display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
 .brand-title{margin-right:auto;}
 .brand-title{display:flex; align-items:center; gap:14px;}
@@ -393,7 +395,7 @@ section.block{
   border:1px solid var(--line);
   border-radius:14px;
   background:var(--navy-panel);
-  box-shadow:0 1px 3px rgba(18,34,44,.06), 0 1px 2px rgba(18,34,44,.04);
+  box-shadow:0 2px 6px rgba(18,34,44,.12), 0 1px 2px rgba(18,34,44,.06);
   overflow:hidden;
 }
 .block-head{
@@ -587,6 +589,7 @@ footer.hint{
 <div class="bg-logo" aria-hidden="true"><img src="bg-logo.png" alt=""></div>
 
 <header class="app">
+  <p class="header-region"><span>Prove regionali Friuli Venezia Giulia</span><img src="fvg-logo.png" alt="Friuli Venezia Giulia"></p>
   <div class="brand">
     <div class="brand-title">
       <img class="header-logo" src="header-logo.png" alt="Nuoto San Vito">
