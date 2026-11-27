@@ -722,7 +722,7 @@ footer.hint{
         <img src="brand-enrico.webp" alt="Sviluppato da Enrico R." width="80" height="96">
         <div>
           <b>Orari·Batterie</b>
-          <span>Versione 1.0.3 — 27/11/2026</span>
+          <span>Versione 1.0.4 — 27/11/2026</span>
         </div>
       </div>
     </div>
@@ -900,7 +900,7 @@ footer.hint{
     <div class="empty-state">
       <div class="icon">🏊</div>
       <h2>Nessuna gara caricata</h2>
-      <p>Carica una starting list PDF per generare il cronoprogramma delle batterie. Una volta caricato, resterà salvato e visibile a chiunque apra questa pagina.</p>
+      <p>Carica una starting list PDF per generare il cronoprogramma delle batterie.</p>
     </div>
   </div>
 </main>
@@ -910,7 +910,7 @@ footer.hint{
     <img src="brand-enrico.webp" alt="Sviluppato da Enrico R." width="80" height="96">
     <div>
       <b>Orari·Batterie</b>
-      <span>Versione 1.0.3 — 27/11/2026</span>
+      <span>Versione 1.0.4 — 27/11/2026</span>
     </div>
   </div>
 </footer>
@@ -3586,7 +3586,7 @@ function render(){
 
   const content = document.getElementById('content');
   if(!STATE.meeting || STATE.meeting.length===0){
-    content.innerHTML = `<div class="empty-state"><div class="icon">🏊</div><h2>Nessuna gara caricata</h2><p>Carica una starting list PDF per generare il cronoprogramma delle batterie. Una volta caricato, resterà salvato e visibile a chiunque apra questa pagina.</p></div>`;
+    content.innerHTML = `<div class="empty-state"><div class="icon">🏊</div><h2>Nessuna gara caricata</h2><p>Carica una starting list PDF per generare il cronoprogramma delle batterie.</p></div>`;
     renderMonitor();
     return;
   }
