@@ -37,10 +37,11 @@
 html,body{margin:0;padding:0;}
 .bg-logo{
   position:fixed;
-  right:-40px;
-  bottom:-20px;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:12px;
   width:900px;
-  max-width:80vw;
+  max-width:90vw;
   pointer-events:none;
   z-index:0;
   user-select:none;
@@ -133,6 +134,11 @@ html,body{margin:0;padding:0;}
   padding:1px 7px; border-radius:5px; background:var(--navy-panel-2); color:var(--water-bright); margin-left:6px;
 }
 .fed-tag.ok{color:var(--ok);}
+
+.app-version{display:flex; align-items:center; gap:14px; margin-top:22px; padding-top:14px; border-top:1px solid var(--line); font-size:13px; color:var(--text-dim);}
+.app-version img{width:80px; height:auto; flex:none;}
+.app-version b{display:block; color:var(--text); font-size:14px;}
+.footer-version{flex-direction:column; justify-content:center; text-align:center; gap:6px; margin:18px auto 0; border-top:0; padding-top:0;}
 
 /* Archivio risultati: record personali, classifiche, importazione */
 .modal-panel.wide{max-width:920px;}
@@ -711,6 +717,14 @@ footer.hint{
 
       <h3>Le gare passate</h3>
       <p>Le batterie con orario già trascorso appaiono in grigio, ma il loro orario resta modificabile (in modalità Amministratore): le batterie successive della stessa parte vengono ricalcolate.</p>
+
+      <div class="app-version">
+        <img src="brand-enrico.webp" alt="Sviluppato da Enrico R." width="80" height="96">
+        <div>
+          <b>Orari·Batterie</b>
+          <span>Versione 1.0.3 — 27/11/2026</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -891,7 +905,15 @@ footer.hint{
   </div>
 </main>
 
-<footer class="hint">Fuso orario: Europe/Rome · I dati sono condivisi in tempo reale tra tutti i dispositivi collegati a questa pagina.</footer>
+<footer class="hint">Fuso orario: Europe/Rome · I dati sono condivisi in tempo reale tra tutti i dispositivi collegati a questa pagina.
+  <div class="app-version footer-version">
+    <img src="brand-enrico.webp" alt="Sviluppato da Enrico R." width="80" height="96">
+    <div>
+      <b>Orari·Batterie</b>
+      <span>Versione 1.0.3 — 27/11/2026</span>
+    </div>
+  </div>
+</footer>
 
 <script>
 /* ============================================================
