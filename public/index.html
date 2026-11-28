@@ -642,6 +642,13 @@ footer.hint{
       <label>Stacco specialità (min)</label>
       <input type="number" id="setStaccoSpecialita" min="0" max="30" value="1">
     </div>
+    <div class="field">
+      <label>Metodo di calcolo</label>
+      <select id="setMetodoCalcolo">
+        <option value="durata">Durata batterie + stacchi</option>
+        <option value="classico">Classico (solo stacchi)</option>
+      </select>
+    </div>
     <div class="field" style="justify-content:flex-end;">
       <button class="btn primary small" id="btnApplySettings">Applica e ricalcola</button>
     </div>
@@ -698,6 +705,11 @@ footer.hint{
       <h3>Modificare orari e impostazioni</h3>
       <p>Serve passare in <b>🛡️ Amministratore</b> inserendo il PIN (solo chi lo conosce). Da lì puoi cambiare corsie/stacco tempi e correggere manualmente l'orario di una batteria: tutte quelle successive nella stessa parte si ricalcolano, anche se erano state modificate manualmente.</p>
 
+      <h3>Come si calcolano gli orari</h3>
+      <p>Con il metodo <b>Durata batterie + stacchi</b> (predefinito) l'inizio di una batteria è: inizio della batteria precedente (o orario ufficiale della parte, se è la prima) + durata della batteria precedente + stacco batteria + stacco specialità quando cambia specialità.</p>
+      <p>La durata è il tempo d'iscrizione dell'atleta più lento. Se nella batteria c'è almeno un <b>S.T.</b> (senza tempo), si usa il maggiore tra questo e un tempo standard: il 90° percentile dei risultati in archivio per stessa distanza, stile, sesso e categoria; se in archivio non ci sono dati, il tempo più lento iscritto alla specialità o, in mancanza, una stima fissa.</p>
+      <p>In <b>⚙️ Impostazioni → Metodo di calcolo</b> si può tornare al metodo <b>Classico</b> (solo stacchi fissi, senza durata delle batterie) e premere <b>Applica e ricalcola</b>. Le gare caricate prima della versione 1.1.0 restano col metodo classico finché non lo si cambia.</p>
+
       <h3>Piscine e corsie</h3>
       <p>Al caricamento del PDF l'app legge la piscina dalla riga "Concentramento" e, se la riconosce, usa il numero di corsie impostato per quella piscina. In <b>⚙️ Impostazioni</b> puoi scegliere un'altra piscina e premere <b>Applica e ricalcola</b>. L'Amministratore può aggiungere, modificare o eliminare le piscine (formato "Città - Piscina"): l'elenco vale per tutti gli utenti. Quando salva, le gare già caricate che usano una piscina con corsie diverse vengono ricalcolate automaticamente per tutti; le modifiche manuali agli orari di quelle gare vengono azzerate.</p>
       <p>Sempre in <b>⚙️ Impostazioni</b>, nella sezione <b>Manutenzione</b> (solo Amministratore), si trova <b>🧹 Pulizia totale</b>.</p>
@@ -722,7 +734,7 @@ footer.hint{
         <img src="brand-enrico.webp" alt="Sviluppato da Enrico R." width="80" height="96">
         <div>
           <b>Orari·Batterie</b>
-          <span>Versione 1.0.4 — 27/11/2026</span>
+          <span>Versione 1.1.0 — 28/11/2026</span>
         </div>
       </div>
     </div>
@@ -910,7 +922,7 @@ footer.hint{
     <img src="brand-enrico.webp" alt="Sviluppato da Enrico R." width="80" height="96">
     <div>
       <b>Orari·Batterie</b>
-      <span>Versione 1.0.4 — 27/11/2026</span>
+      <span>Versione 1.1.0 — 28/11/2026</span>
     </div>
   </div>
 </footer>
@@ -1791,6 +1803,58 @@ function raggruppaBatterie(atleti, corsie){
 
 function addMinutes(date, min){ return new Date(date.getTime() + min*60000); }
 
+/* ---------- Tempo standard per gli S.T. (metodo "durata") ----------
+   90° percentile dei tempi in archivio per distanza, stile, sesso e categoria;
+   in mancanza: tempo d'iscrizione più lento della specialità; poi tabella fissa. */
+const TEMPO_STD_PER_50 = { 'Stile libero':50, 'Dorso':55, 'Rana':60, 'Farfalla':55, 'Misti':58 };
+function chiaveSpecialita(specialita){
+  const t = String(specialita||'').replace(/\s+[-–]\s+(SERIE|SERIES|BATTERI[AE]|FINAL[EI])\b.*$/i, '').trim();
+  return risEventoDaRiga(t);
+}
+function percentile(valori, p){
+  const v = valori.slice().sort((a,b)=>a-b);
+  if(!v.length) return null;
+  const i = (v.length-1)*p/100, lo = Math.floor(i), hi = Math.min(lo+1, v.length-1);
+  return v[lo] + (v[hi]-v[lo])*(i-lo);
+}
+function tempoStdRiserva(ev, k){
+  const validi = (ev.batterie||[]).flatMap(b=>b.atleti||[]).map(a=>a.tempoSec).filter(t=>t!=null);
+  if(validi.length) return { sec:Math.max(...validi), fonte:'specialita' };
+  const dist = k ? k.dist : parseInt(String(ev.specialita||''),10);
+  const per50 = (k && TEMPO_STD_PER_50[k.stile]) || 60;
+  return { sec: dist>0 ? dist/50*per50 : 60, fonte:'tabella' };
+}
+function tempoStdArchivio(k){
+  if(!k || !RIS.prestazioni.length) return null;
+  const cat = risMaiuscolo(k.cat);
+  const tutti = RIS.prestazioni.filter(p=>p.dist===k.dist && p.stile===k.stile && risMaiuscolo(p.cat)===cat
+    && (k.sesso==='X' || risSessoDi(p, RIS.sessi)===k.sesso) && p.cs>0);
+  const in25 = tutti.filter(p=>p.vasca===25);
+  const scelti = in25.length ? in25 : tutti;
+  return scelti.length ? percentile(scelti.map(p=>p.cs/100), 90) : null;
+}
+// calcola e memorizza ev.tempoStd per ogni specialità (serve l'archivio risultati, se disponibile)
+async function calcolaTempiStandard(meeting){
+  try{ await risCaricaArchivio(); }catch(err){ console.warn('archivio risultati non disponibile:', err); }
+  meeting.forEach(parte=>(parte.eventi||[]).forEach(ev=>{
+    const k = chiaveSpecialita(ev.specialita);
+    const arch = tempoStdArchivio(k);
+    const r = arch!=null ? { sec:arch, fonte:'archivio' } : tempoStdRiserva(ev, k);
+    ev.tempoStd = Math.round(r.sec*100)/100;
+    ev.tempoStdFonte = r.fonte;
+  }));
+}
+// durata prevista di una batteria (secondi): il più lento con tempo valido;
+// se c'è almeno un S.T. si prende il maggiore tra questo e il tempo standard
+function durataBatteria(b, ev){
+  const atleti = b.atleti || [];
+  const validi = atleti.map(a=>a.tempoSec).filter(t=>t!=null);
+  const maxValido = validi.length ? Math.max(...validi) : 0;
+  if(validi.length === atleti.length && validi.length) return maxValido;
+  const std = ev.tempoStd != null ? ev.tempoStd : tempoStdRiserva(ev, chiaveSpecialita(ev.specialita)).sec;
+  return Math.max(maxValido, std);
+}
+
 function costruisciMeeting(eventiRaw, corsie){
   // raggruppa per parte, crea struttura con batterie (orario iniziale = grezzo,
   // verrà normalizzato dal ricalcolo globale subito dopo)
@@ -1840,10 +1904,14 @@ function fmtHM(date){
 
 // ricalcola in place gli orari di TUTTE le batterie non manuali di una parte,
 // rispettando le ancore (batterie manuali). Ritorna true se sfora mezzanotte.
-function ricalcolaParte(parte, staccoBatteria, staccoSpecialita){
+// metodo "classico": inizio = precedente + stacco batteria OPPURE stacco specialità.
+// metodo "durata": inizio = precedente + durata della batteria precedente
+//                   + stacco batteria (+ stacco specialità se cambia specialità).
+function ricalcolaParte(parte, staccoBatteria, staccoSpecialita, metodo){
   const mezzanotte = new Date(parte.oraInizioOriginale ? parseDataOra(parte.data, '23:59') : null);
   let cursore = null;
   let prevEventIdx = null;
+  let prev = null;
   let sforato = false;
   parte.eventi.forEach((ev, eIdx)=>{
     ev.batterie.forEach((b)=>{
@@ -1854,8 +1922,13 @@ function ricalcolaParte(parte, staccoBatteria, staccoSpecialita){
         cursore = parseDataOra(parte.data, parte.oraInizioOriginale);
         b.orario = cursore.toISOString();
       } else {
-        const stacco = (eIdx===prevEventIdx) ? staccoBatteria : staccoSpecialita;
-        cursore = addMinutes(cursore, stacco);
+        const cambiaSpec = eIdx!==prevEventIdx;
+        if(metodo === 'durata'){
+          const sec = durataBatteria(prev.b, prev.ev) + staccoBatteria*60 + (cambiaSpec ? staccoSpecialita*60 : 0);
+          cursore = new Date(cursore.getTime() + Math.round(sec*1000));
+        } else {
+          cursore = addMinutes(cursore, cambiaSpec ? staccoSpecialita : staccoBatteria);
+        }
         if(cursore > mezzanotte){
           cursore = new Date(mezzanotte);
           sforato = true;
@@ -1863,15 +1936,16 @@ function ricalcolaParte(parte, staccoBatteria, staccoSpecialita){
         b.orario = cursore.toISOString();
       }
       prevEventIdx = eIdx;
+      prev = { b, ev };
     });
   });
   return sforato;
 }
 
-function ricalcolaMeeting(meeting, staccoBatteria, staccoSpecialita){
+function ricalcolaMeeting(meeting, staccoBatteria, staccoSpecialita, metodo){
   let sforato = false;
   meeting.forEach(parte=>{
-    const s = ricalcolaParte(parte, staccoBatteria, staccoSpecialita);
+    const s = ricalcolaParte(parte, staccoBatteria, staccoSpecialita, metodo);
     if(s) sforato = true;
   });
   return sforato;
@@ -1907,13 +1981,18 @@ async function elaboraECaricaPdf(fileOrBlob, nomeFile, origine){
     const luogoPdf = (eventiRaw.find(ev=>ev.luogo) || {}).luogo || null;
     const piscina = trovaPiscina(luogoPdf);
     const corsie = piscina ? piscina.corsie : (parseInt(document.getElementById('setCorsie').value,10) || 10);
+    const metodoCalcolo = document.getElementById('setMetodoCalcolo').value || 'durata';
     const meeting = costruisciMeeting(eventiRaw, corsie);
-    ricalcolaMeeting(meeting, staccoBatteria, staccoSpecialita);
+    if(metodoCalcolo === 'durata'){
+      statusEl.textContent = 'Calcolo dei tempi standard dall’archivio risultati…';
+      await calcolaTempiStandard(meeting);
+    }
+    ricalcolaMeeting(meeting, staccoBatteria, staccoSpecialita, metodoCalcolo);
 
     STATE.meta = {
       fileName: nomeFile,
       uploadedAt: new Date().toISOString(),
-      corsie, staccoBatteria, staccoSpecialita,
+      corsie, staccoBatteria, staccoSpecialita, metodoCalcolo,
       piscina: piscina ? piscina.nome : null,
       luogoPdf
     };
@@ -3059,6 +3138,7 @@ document.getElementById('btnApplySettings').addEventListener('click', async ()=>
   const corsie = parseInt(document.getElementById('setCorsie').value,10) || 10;
   const staccoBatteria = parseFloat(document.getElementById('setStaccoBatteria').value) || 0;
   const staccoSpecialita = parseFloat(document.getElementById('setStaccoSpecialita').value) || 0;
+  const metodoCalcolo = document.getElementById('setMetodoCalcolo').value || 'durata';
   const idxPiscina = document.getElementById('setPiscina').value;
   const piscinaSel = idxPiscina !== '' ? PISCINE[parseInt(idxPiscina,10)] : null;
   STATE.meta.piscina = piscinaSel ? piscinaSel.nome : null;
@@ -3068,6 +3148,7 @@ document.getElementById('btnApplySettings').addEventListener('click', async ()=>
     STATE.meta.corsie = corsie;
     STATE.meta.staccoBatteria = staccoBatteria;
     STATE.meta.staccoSpecialita = staccoSpecialita;
+    STATE.meta.metodoCalcolo = metodoCalcolo;
     await salvaSessione();
     return;
   }
@@ -3076,6 +3157,8 @@ document.getElementById('btnApplySettings').addEventListener('click', async ()=>
   STATE.meta.corsie = corsie;
   STATE.meta.staccoBatteria = staccoBatteria;
   STATE.meta.staccoSpecialita = staccoSpecialita;
+  STATE.meta.metodoCalcolo = metodoCalcolo;
+  if(metodoCalcolo === 'durata') await calcolaTempiStandard(STATE.meeting);
 
   if(corsieCambiate){
     ricostruisciBatterie(STATE.meeting, corsie);
@@ -3084,9 +3167,9 @@ document.getElementById('btnApplySettings').addEventListener('click', async ()=>
     STATE.meeting.forEach(parte=>parte.eventi.forEach(ev=>ev.batterie.forEach(b=>b.manuale=false)));
   }
 
-  const sforato = ricalcolaMeeting(STATE.meeting, staccoBatteria, staccoSpecialita);
+  const sforato = ricalcolaMeeting(STATE.meeting, staccoBatteria, staccoSpecialita, metodoCalcolo);
   STATE.lastEdit = {
-    tipo:'settings', dettaglio:`Impostazioni aggiornate — ${STATE.meta.piscina ? 'piscina:'+STATE.meta.piscina+', ' : ''}corsie:${corsie}, stacco batteria:${staccoBatteria}min, stacco specialità:${staccoSpecialita}min`,
+    tipo:'settings', dettaglio:`Impostazioni aggiornate — ${STATE.meta.piscina ? 'piscina:'+STATE.meta.piscina+', ' : ''}corsie:${corsie}, stacco batteria:${staccoBatteria}min, stacco specialità:${staccoSpecialita}min, calcolo:${metodoCalcolo==='durata'?'durata batterie':'classico'}`,
     timestamp:new Date().toISOString(), operatore:getOperatore()
   };
   await salvaSessione();
@@ -3165,7 +3248,7 @@ async function propagaPiscineAlleSessioni(nuove, rinomine){
     if(corsieCambiate){
       normalizzaMeeting(meeting);
       ricostruisciBatterie(meeting, piscina.corsie);
-      ricalcolaMeeting(meeting, meta.staccoBatteria ?? 2, meta.staccoSpecialita ?? 1);
+      ricalcolaMeeting(meeting, meta.staccoBatteria ?? 2, meta.staccoSpecialita ?? 1, meta.metodoCalcolo);
     }
     const lastEdit = {
       tipo:'piscine',
@@ -3404,6 +3487,8 @@ function syncSettingsFields(){
   document.getElementById('setCorsie').value = STATE.meta.corsie ?? 10;
   document.getElementById('setStaccoBatteria').value = STATE.meta.staccoBatteria ?? 2;
   document.getElementById('setStaccoSpecialita').value = STATE.meta.staccoSpecialita ?? 1;
+  // gare caricate prima della 1.1.0 restano col calcolo classico finché non si cambia
+  document.getElementById('setMetodoCalcolo').value = STATE.meta.metodoCalcolo || (STATE.meeting.length ? 'classico' : 'durata');
   renderSelectPiscina();
 }
 
@@ -3426,7 +3511,7 @@ async function onOrarioEdit(parteIdx, eventoIdx, battIdx, nuovoValoreHM){
       if(eIdx > eventoIdx || (eIdx === eventoIdx && bIdx > battIdx)) batteria.manuale = false;
     });
   });
-  const sforato = ricalcolaParte(parte, STATE.meta.staccoBatteria, STATE.meta.staccoSpecialita);
+  const sforato = ricalcolaParte(parte, STATE.meta.staccoBatteria, STATE.meta.staccoSpecialita, STATE.meta.metodoCalcolo);
   document.getElementById('bannerSforamento').classList.toggle('show', sforato);
 
   STATE.lastEdit = {
